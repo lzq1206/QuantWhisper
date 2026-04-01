@@ -10,16 +10,18 @@ QuantWhisper is a GitHub Pages dashboard for the EXP-0004 virtual portfolio.
 - Comparison metrics summary
 - GitHub Actions deployment to `gh-pages`
 - Optional Telegram topic report
+- Latest行情 snapshot with AkShare primary + Baostock fallback
 
 ## Live site
 - Pages: https://lzq1206.github.io/QuantWhisper/
 - Repo: https://github.com/lzq1206/QuantWhisper
 
 ## How the automation works
-The workflow in `.github/workflows/deploy.yml` does three things:
+The workflow in `.github/workflows/deploy.yml` does four things:
 1. Optionally syncs a source snapshot if `QUANTWHISPER_SOURCE_DIR` is configured as a secret.
-2. Rebuilds the static dashboard into `site/`.
-3. Deploys the result to the `gh-pages` branch and, if Telegram secrets are present, posts a daily summary.
+2. Fetches the latest market snapshot using AkShare first, then Baostock as fallback.
+3. Rebuilds the static dashboard into `site/`.
+4. Deploys the result to the `gh-pages` branch and, if Telegram secrets are present, posts a daily summary.
 
 ## Telegram configuration
 Set these GitHub repository secrets if you want auto-posting into Telegram:

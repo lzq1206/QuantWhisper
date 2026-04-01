@@ -22,11 +22,20 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install akshare baostock
+
       - name: Sync source snapshot if configured
         env:
           QUANTWHISPER_SOURCE_DIR: ${{ secrets.QUANTWHISPER_SOURCE_DIR }}
         run: |
           python scripts/sync_source_snapshot.py
+
+      - name: Fetch latest market snapshot
+        run: |
+          python scripts/fetch_latest_market_snapshot.py
 
       - name: Build site assets
         run: |

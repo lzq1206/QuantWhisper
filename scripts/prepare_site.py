@@ -71,6 +71,13 @@ def build_summary() -> None:
     monthly = load_csv(SOURCE / "monthly_returns_best.csv")
     nav = load_csv(SOURCE / "daily_nav_vs_benchmark_near2y_available.csv")
     holdings = load_csv(SOURCE / "holdings_snapshots_best.csv")
+    market_snapshot = None
+    market_snapshot_path = SITE_DATA / "market_snapshot.json"
+    if market_snapshot_path.exists():
+        try:
+            market_snapshot = json.loads(market_snapshot_path.read_text(encoding="utf-8"))
+        except Exception:
+            market_snapshot = None
 
     summary = {
         "generated_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
@@ -80,6 +87,7 @@ def build_summary() -> None:
         "monthly_points": len(monthly),
         "nav_points": len(nav),
         "latest_holdings": compute_latest_holdings(holdings),
+        "market_snapshot": market_snapshot,
         "automation": {
             "pages_url": "https://lzq1206.github.io/QuantWhisper/",
             "repo_url": "https://github.com/lzq1206/QuantWhisper",
@@ -89,6 +97,7 @@ def build_summary() -> None:
             "GitHub Pages dashboard for the EXP-0004 virtual portfolio.",
             "Data are copied from project/reports/EXP-0004.",
             "If QUANTWHISPER_SOURCE_DIR is set locally, sync_source_snapshot.py can refresh the snapshot before build.",
+            "Latest行情会优先从 AkShare 抓取，失败时自动降级到 Baostock。",
         ],
     }
     (SITE_DATA / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SUMMARY = ROOT / "site" / "data" / "summary.json"
+MARKET = ROOT / "site" / "data" / "market_snapshot.json"
 
 
 def pct(v):
@@ -25,6 +26,12 @@ def main() -> None:
     data = json.loads(SUMMARY.read_text(encoding="utf-8"))
     s = data["strategy"]
     holdings = data["latest_holdings"]["holdings"][:5]
+    market = {}
+    if MARKET.exists():
+        try:
+            market = json.loads(MARKET.read_text(encoding="utf-8"))
+        except Exception:
+            market = {}
 
     lines = [
         "QuantWhisper 日更虚拟盘已更新",
@@ -32,9 +39,18 @@ def main() -> None:
         f"年化收益：{pct(s['annual_return'])} | 年化超额：{pct(s['annual_excess_return'])}",
         f"最大回撤：{pct(s['max_drawdown'])} | 夏普：{num(s['sharpe'])} | IR：{num(s['information_ratio'])}",
         f"最新持仓日期：{data['latest_holdings']['date']}（Top {len(holdings)}）",
-        "",
-        "Top 持仓：",
     ]
+    if market:
+        provider = market.get("provider", "unknown")
+        count = market.get("count", 0)
+        bench = market.get("benchmark", {}) or {}
+        bench_name = bench.get("name", "基准")
+        bench_chg = pct(bench.get("pct_chg")) if bench else "—"
+        lines += [
+            f"最新行情源：{provider}（{count} 条）",
+            f"基准：{bench_name} {bench_chg}",
+        ]
+    lines += ["", "Top 持仓："]
     for h in holdings:
         lines.append(f"- {h['stkcd']}: {float(h['weight']) * 100:.3f}%")
 
