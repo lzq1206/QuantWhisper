@@ -9,22 +9,38 @@ QuantWhisper is a GitHub Pages dashboard for the EXP-0004 virtual portfolio.
 - Latest holdings snapshot
 - Comparison metrics summary
 - GitHub Actions deployment to `gh-pages`
+- Optional Telegram topic report
 
-## Data source
-The current site is built from the prepared outputs under:
+## Live site
+- Pages: https://lzq1206.github.io/QuantWhisper/
+- Repo: https://github.com/lzq1206/QuantWhisper
 
+## How the automation works
+The workflow in `.github/workflows/deploy.yml` does three things:
+1. Optionally syncs a source snapshot if `QUANTWHISPER_SOURCE_DIR` is configured as a secret.
+2. Rebuilds the static dashboard into `site/`.
+3. Deploys the result to the `gh-pages` branch and, if Telegram secrets are present, posts a daily summary.
+
+## Telegram configuration
+Set these GitHub repository secrets if you want auto-posting into Telegram:
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+- `TELEGRAM_THREAD_ID` (for topic 137, use `137`)
+
+## Source snapshot
+The current dashboard is built from the prepared outputs under:
 - `project/reports/EXP-0004`
+
+If you later want the workflow to refresh from a different source, set:
+- `QUANTWHISPER_SOURCE_DIR` for local/manual sync runs
+- or extend the workflow to download a remote artifact before building
 
 ## Local build
 ```bash
+python scripts/sync_source_snapshot.py
 python scripts/prepare_site.py
 cp index.html site/index.html
 ```
 
-## Deployment flow
-- Push to `main`
-- GitHub Actions builds `site/`
-- Pages are deployed to `gh-pages`
-
 ## Notes
-This repo is a static dashboard only. If you want it to fetch market data and run a fresh backtest every day, the workflow can be extended with data-fetch steps and a simulation script.
+This repo is a static dashboard. It is now wired for scheduled rebuilds, and can be extended to pull live market data before rendering.

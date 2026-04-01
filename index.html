@@ -3,71 +3,47 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>QuantWhisper | 日更虚拟盘</title>
+  <title>QuantWhisper | Virtual Fund Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #0b1020;
-      --panel: rgba(17, 24, 39, 0.72);
-      --panel-2: rgba(31, 41, 55, 0.72);
-      --text: #e5eefc;
-      --muted: #9fb0c9;
-      --accent: #7dd3fc;
-      --good: #86efac;
-      --bad: #fca5a5;
-      --line: rgba(148, 163, 184, 0.18);
+      --bg:#07111f; --panel:rgba(14,22,39,.78); --panel2:rgba(16,26,46,.78);
+      --line:rgba(148,163,184,.16); --text:#e8eef9; --muted:#9fb0c9;
+      --a:#7dd3fc; --b:#a78bfa; --good:#86efac; --bad:#fca5a5;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #172554 0, #0f172a 35%, #030712 100%);
-      color: var(--text);
-    }
-    a { color: var(--accent); text-decoration: none; }
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 18px 48px; }
-    .hero {
-      display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 18px; align-items: stretch;
-      margin-bottom: 18px;
-    }
-    .card, .panel {
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      border: 1px solid var(--line);
-      border-radius: 18px; padding: 18px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.28);
-      backdrop-filter: blur(12px);
-    }
-    .title { font-size: 34px; font-weight: 800; margin: 0 0 8px; letter-spacing: .2px; }
-    .subtitle { color: var(--muted); line-height: 1.6; margin: 0; }
-    .tagrow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-    .tag {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 10px; border-radius: 999px;
-      background: rgba(125, 211, 252, 0.12); color: #c8f3ff; border: 1px solid rgba(125,211,252,.16);
-      font-size: 12px;
-    }
-    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .metric { min-height: 106px; }
-    .metric .k { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
-    .metric .v { font-size: 28px; font-weight: 800; line-height: 1.1; }
-    .metric .s { color: var(--muted); font-size: 12px; margin-top: 8px; }
-    .positive { color: var(--good); }
-    .negative { color: var(--bad); }
-    .section { margin-top: 18px; }
-    .section h2 { margin: 0 0 10px; font-size: 18px; }
-    .two-col { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 12px; }
+    body { margin:0; color:var(--text); background:radial-gradient(circle at top,#12305c 0,#09111e 33%,#030712 100%); font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    a { color: var(--a); text-decoration:none; }
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 26px 18px 42px; }
+    .hero { display:grid; grid-template-columns: 1.25fr .75fr; gap:16px; }
+    .card,.panel { background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 56px rgba(0,0,0,.24); backdrop-filter: blur(10px); }
+    .card { padding:18px; }
+    .title { margin:0; font-size:34px; line-height:1.05; font-weight:900; }
+    .subtitle { margin:10px 0 0; color:var(--muted); line-height:1.7; }
+    .tagrow { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .tag { padding:6px 10px; border:1px solid rgba(125,211,252,.18); background:rgba(125,211,252,.10); border-radius:999px; font-size:12px; color:#ccf4ff; }
+    .stats { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin-top:16px; }
+    .stat { padding:16px; min-height:110px; }
+    .stat .k { color:var(--muted); font-size:12px; }
+    .stat .v { margin-top:8px; font-size:28px; font-weight:900; }
+    .stat .s { margin-top:8px; color:var(--muted); font-size:12px; line-height:1.5; }
+    .good { color:var(--good); } .bad { color:var(--bad); }
+    .section { margin-top:16px; }
+    .two { display:grid; grid-template-columns: 1.25fr .75fr; gap:16px; }
+    .panel { padding:16px; }
+    .panel h2 { margin:0 0 10px; font-size:18px; }
     .chartbox { height: 420px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { border-bottom: 1px solid rgba(148,163,184,.16); padding: 10px 8px; text-align: left; }
-    th { color: #c9d6ea; font-weight: 700; background: rgba(255,255,255,.02); }
-    .small { font-size: 12px; color: var(--muted); }
-    .footer { margin-top: 16px; color: var(--muted); font-size: 12px; line-height: 1.8; }
-    .imggrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .imggrid img { width: 100%; border-radius: 12px; border: 1px solid rgba(148,163,184,.16); }
-    .pill { display:inline-block; padding: 4px 8px; border-radius: 999px; background: rgba(34,197,94,.12); color: #bbf7d0; border: 1px solid rgba(34,197,94,.2); font-size: 12px; }
-    @media (max-width: 1024px) {
-      .hero, .grid4, .two-col, .imggrid { grid-template-columns: 1fr; }
-      .title { font-size: 28px; }
-    }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th,td { padding:10px 8px; border-bottom:1px solid rgba(148,163,184,.14); text-align:left; }
+    th { color:#d7e1f3; background:rgba(255,255,255,.02); }
+    .small { font-size:12px; color:var(--muted); line-height:1.8; }
+    .grid2 { display:grid; grid-template-columns: repeat(2,1fr); gap:14px; }
+    .pill { display:inline-block; padding:4px 8px; border-radius:999px; background:rgba(34,197,94,.12); color:#bbf7d0; border:1px solid rgba(34,197,94,.2); font-size:12px; }
+    .imggrid { display:grid; grid-template-columns: repeat(2,1fr); gap:10px; }
+    .imggrid img { width:100%; display:block; border-radius:12px; border:1px solid rgba(148,163,184,.16); }
+    .footer { margin-top:16px; color:var(--muted); font-size:12px; line-height:1.8; }
+    code { background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 6px; }
+    @media (max-width: 1040px){ .hero,.stats,.two,.grid2,.imggrid { grid-template-columns:1fr; } .title{font-size:28px;} }
   </style>
 </head>
 <body>
@@ -75,47 +51,49 @@
     <div class="hero">
       <div class="card">
         <h1 class="title">QuantWhisper</h1>
-        <p class="subtitle">
-          日更虚拟盘看板：展示 EXP-0004 的累计净值、相对基准表现、持仓变化与风险指标。
-          该站点可由 GitHub Actions 自动构建并发布到 GitHub Pages。
-        </p>
+        <p class="subtitle">日更虚拟盘 + GitHub Pages 看板。当前页面展示 EXP-0004 的净值表现、持仓摘要、比较指标，并预留了 GitHub Actions 自动刷新与 Telegram topic 推送入口。</p>
         <div class="tagrow">
           <span class="tag">GitHub Pages</span>
           <span class="tag">GitHub Actions</span>
           <span class="tag">Daily Virtual Portfolio</span>
+          <span class="tag">Telegram topic:137</span>
           <span class="tag">EXP-0004</span>
         </div>
       </div>
       <div class="card">
         <div class="small">最新构建时间</div>
-        <div id="generatedAt" style="font-size:28px;font-weight:800;margin-top:6px;">加载中…</div>
-        <div class="small" style="margin-top:10px;line-height:1.8;">
-          <div>主策略：<span id="strategyName">—</span></div>
-          <div>观察点数：<span id="navPoints">—</span></div>
+        <div id="generatedAt" style="font-size:28px;font-weight:900;margin-top:6px;">加载中…</div>
+        <div class="small" style="margin-top:10px;">
+          <div>策略：<span id="strategyName">—</span></div>
           <div>最新持仓日期：<span id="holdingDate">—</span></div>
+          <div>净值样本数：<span id="navPoints">—</span></div>
         </div>
       </div>
     </div>
 
-    <div class="grid4 section" id="metrics"></div>
+    <div class="stats section" id="metrics"></div>
 
-    <div class="two-col section">
+    <div class="two section">
       <div class="panel">
         <h2>净值曲线</h2>
         <div class="chartbox"><canvas id="navChart"></canvas></div>
       </div>
       <div class="panel">
-        <h2>策略摘要</h2>
-        <div id="strategyCard" class="small" style="line-height:1.85;">加载中…</div>
-        <div style="margin-top:14px;">
-          <a href="data/daily_nav_vs_benchmark_near2y_available.csv" download>下载净值 CSV</a> ·
-          <a href="data/monthly_returns_best.csv" download>下载月度收益 CSV</a> ·
-          <a href="data/comparison_metrics.csv" download>下载比较指标 CSV</a>
+        <h2>自动化状态</h2>
+        <div id="automationCard" class="small">加载中…</div>
+        <div style="margin-top:12px; line-height:1.9;" class="small">
+          <div><a href="data/daily_nav_vs_benchmark_near2y_available.csv" download>下载净值 CSV</a></div>
+          <div><a href="data/monthly_returns_best.csv" download>下载月度收益 CSV</a></div>
+          <div><a href="data/comparison_metrics.csv" download>下载比较指标 CSV</a></div>
+          <div><a href="data/summary.json" download>下载构建摘要 JSON</a></div>
+        </div>
+        <div style="margin-top:12px;">
+          <span class="pill">ready to deploy</span>
         </div>
       </div>
     </div>
 
-    <div class="two-col section">
+    <div class="two section">
       <div class="panel">
         <h2>月度收益</h2>
         <table id="monthlyTable"></table>
@@ -131,191 +109,129 @@
       <table id="compareTable"></table>
     </div>
 
-    <div class="section two-col">
+    <div class="section two">
       <div class="panel">
         <h2>参考图</h2>
         <div class="imggrid">
-          <img src="assets/daily_nav_vs_benchmark_near2y_available.png" alt="净值曲线图" />
-          <img src="assets/daily_nav_compare_exp0003v2_exp0004_same_chart.png" alt="对比图" />
-          <img src="assets/daily_nav_consistent_with_monthly_EXP0004_2024_2025.png" alt="月度一致性图" />
+          <img src="assets/daily_nav_vs_benchmark_near2y_available.png" alt="净值曲线" />
+          <img src="assets/daily_nav_compare_exp0003v2_exp0004_same_chart.png" alt="对比曲线" />
+          <img src="assets/daily_nav_consistent_with_monthly_EXP0004_2024_2025.png" alt="月度一致性" />
           <img src="assets/daily_nav_vs_benchmark_2024_2025_partial.png" alt="局部图" />
         </div>
       </div>
       <div class="panel">
-        <h2>说明</h2>
-        <p class="small" style="line-height:1.9; margin-top:0;">
-          该仓库的目标是把虚拟盘的回测、日报和看板统一到 GitHub：
-          <br/>1. GitHub Actions 定时更新页面；
-          <br/>2. GitHub Pages 对外展示；
-          <br/>3. 后续可在 workflow 里接入真实行情源，继续自动刷新。
-        </p>
-        <p class="small" style="line-height:1.9;">
-          当前展示的数据来自 <code>project/reports/EXP-0004</code>。
-        </p>
-        <span class="pill">ready to deploy</span>
+        <h2>运行说明</h2>
+        <div class="small">
+          <div>1. 仓库 push 到 <code>main</code> 后，GitHub Actions 会构建并推送到 <code>gh-pages</code>。</div>
+          <div>2. 定时任务会在每天固定时间重建页面。</div>
+          <div>3. 如果配置了 Telegram Secrets，则会把日报摘要发到 topic 137。</div>
+          <div>4. 如果配置了 <code>QUANTWHISPER_SOURCE_DIR</code>（本地）或后续接入远端数据源，脚本会先同步最新快照再构建。</div>
+        </div>
       </div>
     </div>
 
     <div class="footer">
-      <div>注意：此页为静态看板，不直接执行交易；自动运行需要 GitHub Actions / 外部数据源支持。</div>
-      <div>若要升级到“每日自动跑 + 自动发群”，可继续接入定时 workflow、行情抓取脚本和消息推送步骤。</div>
+      <div>Pages：<a href="https://lzq1206.github.io/QuantWhisper/">https://lzq1206.github.io/QuantWhisper/</a></div>
+      <div>Repo：<a href="https://github.com/lzq1206/QuantWhisper">https://github.com/lzq1206/QuantWhisper</a></div>
+      <div>说明：当前页面是静态看板；真正的“每日行情重跑”还需要接入一个可访问的数据源或源文件同步步骤。</div>
     </div>
   </div>
 
   <script>
-    function fmtPct(x) {
-      if (x === null || x === undefined || x === '') return '—';
-      const n = Number(x);
-      if (!Number.isFinite(n)) return '—';
-      return (n * 100).toFixed(2) + '%';
-    }
-    function fmtNum(x, digits=2) {
-      const n = Number(x);
-      if (!Number.isFinite(n)) return '—';
-      return n.toFixed(digits);
-    }
-    function fmtWeight(x) {
-      const n = Number(x);
-      if (!Number.isFinite(n)) return '—';
-      return (n * 100).toFixed(3) + '%';
-    }
-    function signClass(v) {
-      const n = Number(v);
-      if (!Number.isFinite(n)) return '';
-      return n >= 0 ? 'positive' : 'negative';
-    }
-    function loadCSV(path) {
-      return fetch(path).then(r => {
-        if (!r.ok) throw new Error(path + ' ' + r.status);
-        return r.text();
-      }).then(text => parseCSV(text));
-    }
-    function parseCSV(text) {
+    const fmtPct = v => Number.isFinite(Number(v)) ? (Number(v) * 100).toFixed(2) + '%' : '—';
+    const fmtNum = (v, d=2) => Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '—';
+    const signClass = v => (Number(v) >= 0 ? 'good' : 'bad');
+    const parseCSV = text => {
       const lines = text.trim().split(/\r?\n/);
       if (lines.length < 2) return [];
-      const headers = splitCSVLine(lines[0]);
+      const split = line => {
+        const out = []; let cur = '', q = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') { if (q && line[i+1] === '"') { cur += '"'; i++; } else q = !q; }
+          else if (ch === ',' && !q) { out.push(cur); cur = ''; }
+          else cur += ch;
+        }
+        out.push(cur); return out;
+      };
+      const header = split(lines[0]).map(h => h.replace(/^\ufeff/, ''));
       return lines.slice(1).map(line => {
-        const vals = splitCSVLine(line);
-        const obj = {};
-        headers.forEach((h, i) => obj[h.replace(/^\ufeff/, '')] = vals[i] ?? '');
-        return obj;
+        const vals = split(line);
+        const o = {}; header.forEach((h, i) => o[h] = vals[i] ?? '');
+        return o;
       });
-    }
-    function splitCSVLine(line) {
-      const vals = [];
-      let cur = '', q = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') {
-          if (q && line[i+1] === '"') { cur += '"'; i++; }
-          else q = !q;
-        } else if (ch === ',' && !q) {
-          vals.push(cur); cur = '';
-        } else cur += ch;
-      }
-      vals.push(cur);
-      return vals;
-    }
+    };
+    const load = p => fetch(p).then(r => r.ok ? r.text() : Promise.reject(new Error(p + ' ' + r.status)));
 
     Promise.all([
       fetch('data/summary.json').then(r => r.json()),
-      loadCSV('data/monthly_returns_best.csv'),
-      loadCSV('data/daily_nav_vs_benchmark_near2y_available.csv'),
-      loadCSV('data/comparison_metrics.csv'),
-      loadCSV('data/latest_holdings.csv')
+      load('data/monthly_returns_best.csv').then(parseCSV),
+      load('data/daily_nav_vs_benchmark_near2y_available.csv').then(parseCSV),
+      load('data/comparison_metrics.csv').then(parseCSV),
+      load('data/latest_holdings.csv').then(parseCSV)
     ]).then(([summary, monthly, nav, compare, holdings]) => {
       document.getElementById('generatedAt').textContent = new Date(summary.generated_at).toLocaleString();
       document.getElementById('strategyName').textContent = summary.strategy.strategy;
-      document.getElementById('navPoints').textContent = summary.nav_points;
       document.getElementById('holdingDate').textContent = summary.latest_holdings.date;
+      document.getElementById('navPoints').textContent = summary.nav_points;
 
-      const best = summary.strategy;
-      const metricCards = [
-        ['年化收益', fmtPct(best.annual_return), '策略年化收益'],
-        ['年化超额', fmtPct(best.annual_excess_return), '相对基准超额'],
-        ['最大回撤', fmtPct(best.max_drawdown), '负值越小越稳'],
-        ['夏普 / IR', `${fmtNum(best.sharpe, 2)} / ${fmtNum(best.information_ratio, 2)}`, '风险调整后表现'],
+      const s = summary.strategy;
+      const cards = [
+        ['年化收益', fmtPct(s.annual_return), '策略年化收益'],
+        ['年化超额', fmtPct(s.annual_excess_return), '相对基准'],
+        ['最大回撤', fmtPct(s.max_drawdown), '越接近 0 越稳'],
+        ['夏普 / IR', `${fmtNum(s.sharpe)} / ${fmtNum(s.information_ratio)}`, '风险调整后表现'],
       ];
-      document.getElementById('metrics').innerHTML = metricCards.map(([k, v, s]) => `
-        <div class="card metric">
+      document.getElementById('metrics').innerHTML = cards.map(([k,v,s]) => `
+        <div class="card stat">
           <div class="k">${k}</div>
           <div class="v ${signClass(v)}">${v}</div>
           <div class="s">${s}</div>
-        </div>
-      `).join('');
+        </div>`).join('');
 
-      document.getElementById('strategyCard').innerHTML = `
-        <div>策略名：<b>${best.strategy}</b></div>
-        <div>lambda_risk：<b>${best.lambda_risk}</b></div>
-        <div>区间点数：<b>${best.periods}</b></div>
-        <div>年化收益：<b>${fmtPct(best.annual_return)}</b></div>
-        <div>年化基准：<b>${fmtPct(best.annual_benchmark_return)}</b></div>
-        <div>年化超额：<b>${fmtPct(best.annual_excess_return)}</b></div>
-        <div>最大回撤：<b>${fmtPct(best.max_drawdown)}</b></div>
-        <div>换手率均值：<b>${fmtPct(best.avg_turnover)}</b></div>
+      const auto = summary.automation || {};
+      document.getElementById('automationCard').innerHTML = `
+        <div>模式：<b>${auto.mode || '—'}</b></div>
+        <div>Pages：<a href="${auto.pages_url || '#'}">${auto.pages_url || '—'}</a></div>
+        <div>Repo：<a href="${auto.repo_url || '#'}">${auto.repo_url || '—'}</a></div>
+        <div>构建说明：仓库快照 + 定时重建钩子</div>
       `;
 
       document.getElementById('monthlyTable').innerHTML = `
         <thead><tr><th>日期</th><th>策略月收益</th><th>基准月收益</th></tr></thead>
-        <tbody>
-          ${monthly.map(r => `
-            <tr>
-              <td>${r.date}</td>
-              <td class="${signClass(r.net_ret)}">${fmtPct(r.net_ret)}</td>
-              <td class="${signClass(r.bench_ret)}">${fmtPct(r.bench_ret)}</td>
-            </tr>
-          `).join('')}
-        </tbody>`;
+        <tbody>${monthly.map(r => `<tr><td>${r.date}</td><td class="${signClass(r.net_ret)}">${fmtPct(r.net_ret)}</td><td class="${signClass(r.bench_ret)}">${fmtPct(r.bench_ret)}</td></tr>`).join('')}</tbody>`;
 
-      const latest = summary.latest_holdings.holdings || [];
       document.getElementById('holdingsTable').innerHTML = `
         <thead><tr><th>股票代码</th><th>权重</th></tr></thead>
-        <tbody>
-          ${latest.map(r => `<tr><td>${r.stkcd}</td><td>${fmtWeight(r.weight)}</td></tr>`).join('')}
-        </tbody>`;
+        <tbody>${holdings.map(r => `<tr><td>${r.stkcd}</td><td>${(Number(r.weight) * 100).toFixed(3)}%</td></tr>`).join('')}</tbody>`;
 
       document.getElementById('compareTable').innerHTML = `
         <thead><tr>${Object.keys(compare[0] || {}).map(k => `<th>${k}</th>`).join('')}</tr></thead>
-        <tbody>
-          ${compare.map(r => `<tr>${Object.values(r).map(v => `<td>${v}</td>`).join('')}</tr>`).join('')}
-        </tbody>`;
+        <tbody>${compare.map(r => `<tr>${Object.values(r).map(v => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody>`;
 
-      const labels = nav.map(r => r.date);
-      const strat = nav.map(r => Number(r.strategy_nav));
-      const bench = nav.map(r => Number(r.bench_nav));
       const ctx = document.getElementById('navChart');
       new Chart(ctx, {
         type: 'line',
         data: {
-          labels,
+          labels: nav.map(r => r.date),
           datasets: [
-            {
-              label: '策略净值', data: strat, borderColor: '#7dd3fc', backgroundColor: 'rgba(125,211,252,.12)',
-              tension: 0.25, pointRadius: 0, borderWidth: 2
-            },
-            {
-              label: '基准净值', data: bench, borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.12)',
-              tension: 0.25, pointRadius: 0, borderWidth: 2
-            }
+            { label: '策略净值', data: nav.map(r => Number(r.strategy_nav)), borderColor: '#7dd3fc', borderWidth: 2, pointRadius: 0, tension: .28 },
+            { label: '基准净值', data: nav.map(r => Number(r.bench_nav)), borderColor: '#a78bfa', borderWidth: 2, pointRadius: 0, tension: .28 }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { labels: { color: '#dce7fa' } },
-            tooltip: { mode: 'index', intersect: false }
-          },
-          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#dbe7fa' } } },
           scales: {
-            x: { ticks: { color: '#9fb0c9', maxTicksLimit: 12 }, grid: { color: 'rgba(148,163,184,.12)' } },
-            y: { ticks: { color: '#9fb0c9' }, grid: { color: 'rgba(148,163,184,.12)' } }
+            x: { ticks: { color: '#9fb0c9', maxTicksLimit: 10 }, grid: { color: 'rgba(148,163,184,.10)' } },
+            y: { ticks: { color: '#9fb0c9' }, grid: { color: 'rgba(148,163,184,.10)' } }
           }
         }
       });
     }).catch(err => {
+      document.body.insertAdjacentHTML('afterbegin', `<div style="padding:14px;background:#7f1d1d;color:#fff;">加载失败：${err.message}</div>`);
       console.error(err);
-      document.body.insertAdjacentHTML('afterbegin', `<div style="padding:16px;background:#7f1d1d;color:#fff;">加载失败：${err.message}</div>`);
     });
   </script>
 </body>

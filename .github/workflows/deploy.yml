@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  build-and-notify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,12 +22,19 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Sync source snapshot if configured
+        env:
+          QUANTWHISPER_SOURCE_DIR: ${{ secrets.QUANTWHISPER_SOURCE_DIR }}
+        run: |
+          python scripts/sync_source_snapshot.py
+
       - name: Build site assets
         run: |
           python scripts/prepare_site.py
           cp index.html site/index.html
           touch site/.nojekyll
           date -u +%Y-%m-%dT%H:%M:%SZ > site/build-utc.txt
+          python scripts/build_telegram_message.py > site/telegram_message.txt
 
       - name: Deploy to GitHub Pages branch
         uses: peaceiris/actions-gh-pages@v4
@@ -36,3 +43,22 @@ jobs:
           publish_dir: ./site
           publish_branch: gh-pages
           force_orphan: true
+
+      - name: Send Telegram daily report
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_THREAD_ID: ${{ secrets.TELEGRAM_THREAD_ID }}
+        run: |
+          TEXT_FILE=site/telegram_message.txt
+          if [ -n "${TELEGRAM_THREAD_ID:-}" ]; then
+            curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d chat_id="${TELEGRAM_CHAT_ID}" \
+              -d message_thread_id="${TELEGRAM_THREAD_ID}" \
+              --data-urlencode text@${TEXT_FILE}
+          else
+            curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d chat_id="${TELEGRAM_CHAT_ID}" \
+              --data-urlencode text@${TEXT_FILE}
+          fi

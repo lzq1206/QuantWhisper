@@ -3,7 +3,6 @@ from __future__ import annotations
 import csv
 import json
 import shutil
-from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -81,9 +80,15 @@ def build_summary() -> None:
         "monthly_points": len(monthly),
         "nav_points": len(nav),
         "latest_holdings": compute_latest_holdings(holdings),
+        "automation": {
+            "pages_url": "https://lzq1206.github.io/QuantWhisper/",
+            "repo_url": "https://github.com/lzq1206/QuantWhisper",
+            "mode": "static snapshot + scheduled rebuild hook",
+        },
         "notes": [
             "GitHub Pages dashboard for the EXP-0004 virtual portfolio.",
             "Data are copied from project/reports/EXP-0004.",
+            "If QUANTWHISPER_SOURCE_DIR is set locally, sync_source_snapshot.py can refresh the snapshot before build.",
         ],
     }
     (SITE_DATA / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -103,6 +108,7 @@ def build_summary() -> None:
     manifest = {
         "files": FILES_TO_COPY + ["latest_holdings.csv", "summary.json"],
         "assets": ASSETS_TO_COPY,
+        "generated_at": summary["generated_at"],
     }
     (SITE / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
