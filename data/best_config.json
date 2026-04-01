@@ -1,0 +1,12 @@
+{
+  "strategy": "EXP0004_upgraded",
+  "lambda_risk": 0.0,
+  "periods": 22,
+  "annual_return": 0.49220493153624845,
+  "annual_benchmark_return": 0.3317320703977973,
+  "annual_excess_return": 0.12429638346116767,
+  "max_drawdown": -0.10339178227086843,
+  "sharpe": 1.9080841360807779,
+  "information_ratio": 2.556229232183461,
+  "avg_turnover": 0.7143568391034354
+}
