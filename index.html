@@ -86,6 +86,17 @@
 
     <div class="two section">
       <div class="panel">
+        <h2>最新调仓 Top 10</h2>
+        <table id="tradeTable"></table>
+      </div>
+      <div class="panel">
+        <h2>调仓摘要</h2>
+        <div id="tradeCard" class="small">加载中…</div>
+      </div>
+    </div>
+
+    <div class="two section">
+      <div class="panel">
         <h2>净值曲线</h2>
         <div class="chartbox"><canvas id="navChart"></canvas></div>
       </div>
@@ -93,7 +104,8 @@
         <h2>自动化状态</h2>
         <div id="automationCard" class="small">加载中…</div>
         <div style="margin-top:12px; line-height:1.9;" class="small">
-          <div><a href="data/daily_nav_vs_benchmark_near2y_available.csv" download>下载净值 CSV</a></div>
+          <div><a href="data/daily_nav_current.csv" download>下载当前净值 CSV</a></div>
+          <div><a href="data/daily_nav_vs_benchmark_near2y_available.csv" download>下载主线净值 CSV</a></div>
           <div><a href="data/monthly_returns_best.csv" download>下载月度收益 CSV</a></div>
           <div><a href="data/comparison_metrics.csv" download>下载比较指标 CSV</a></div>
           <div><a href="data/summary.json" download>下载构建摘要 JSON</a></div>
@@ -144,7 +156,7 @@
     <div class="footer">
       <div>Pages：<a href="https://lzq1206.github.io/QuantWhisper/">https://lzq1206.github.io/QuantWhisper/</a></div>
       <div>Repo：<a href="https://github.com/lzq1206/QuantWhisper">https://github.com/lzq1206/QuantWhisper</a></div>
-      <div>说明：当前页面是静态看板；真正的“每日行情重跑”还需要接入一个可访问的数据源或源文件同步步骤。</div>
+      <div>说明：当前页面是静态看板；净值曲线已扩展到当前可得日期，2026 段来自 tradeability compare 扩展样本。</div>
     </div>
   </div>
 
@@ -188,12 +200,13 @@
     Promise.all([
       fetch('data/summary.json').then(r => r.json()),
       load('data/monthly_returns_best.csv').then(parseCSV),
-      load('data/daily_nav_vs_benchmark_near2y_available.csv').then(parseCSV),
+      load('data/daily_nav_current.csv').then(parseCSV),
       load('data/comparison_metrics.csv').then(parseCSV),
       load('data/latest_holdings.csv').then(parseCSV),
       safeJson('data/market_snapshot.json'),
-      safe('data/market_snapshot.csv').then(txt => txt ? parseCSV(txt) : [])
-    ]).then(([summary, monthly, nav, compare, holdings, marketJson, marketCsv]) => {
+      safe('data/market_snapshot.csv').then(txt => txt ? parseCSV(txt) : []),
+      safe('data/trade_latest_rebalance.csv').then(txt => txt ? parseCSV(txt) : [])
+    ]).then(([summary, monthly, nav, compare, holdings, marketJson, marketCsv, tradeRows]) => {
       document.getElementById('generatedAt').textContent = new Date(summary.generated_at).toLocaleString();
       document.getElementById('strategyName').textContent = summary.strategy.strategy;
       document.getElementById('holdingDate').textContent = summary.latest_holdings.date;
@@ -233,6 +246,11 @@
         <thead><tr>${Object.keys(compare[0] || {}).map(k => `<th>${k}</th>`).join('')}</tr></thead>
         <tbody>${compare.map(r => `<tr>${Object.values(r).map(v => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody>`;
 
+      const latestTrades = tradeRows.slice(0, 10);
+      document.getElementById('tradeTable').innerHTML = latestTrades.length ? `
+        <thead><tr><th>调仓日</th><th>动作</th><th>股票</th><th>权重变动</th><th>收盘价</th><th>成交量</th><th>成交额</th></tr></thead>
+        <tbody>${latestTrades.map(r => `<tr><td>${r.rebalance_date || ''}</td><td>${r.action || ''}</td><td>${r.stkcd || ''}</td><td class="${signClass(r.weight_change)}">${fmtPct(r.weight_change)}</td><td>${r.close_price || '—'}</td><td>${r.trade_volume || '—'}</td><td>${r.trade_amount || '—'}</td></tr>`).join('')}</tbody>` : `<tr><td class="small">暂无最新调仓记录</td></tr>`;
+
       const marketTop = marketCsv.slice(0, 10);
       document.getElementById('marketTable').innerHTML = marketTop.length ? `
         <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>来源</th></tr></thead>
@@ -247,6 +265,14 @@
         <div>条数：<b>${marketMeta.count ?? '—'}</b></div>
         <div>基准：<b>${bench.name || bench.symbol || '—'}</b> ${bench.pct_chg !== undefined ? fmtPct(bench.pct_chg) : '—'}</div>
         <div style="margin-top:8px;">${(marketMeta.errors || []).length ? `<b>错误：</b><br/>${(marketMeta.errors || []).map(e => `• ${e}`).join('<br/>')}` : '无错误'}</div>
+      `;
+
+      const latestTradeDate = latestTrades[0] ? latestTrades[0].rebalance_date : '—';
+      document.getElementById('tradeCard').innerHTML = `
+        <div>最新调仓日：<b>${latestTradeDate}</b></div>
+        <div>展示口径：最新调仓前 10 笔，含动作、收盘价、成交量与成交额。</div>
+        <div>参考成交额：按 <b>100 万</b> 元归一化估算。</div>
+        <div style="margin-top:8px;">${summary.latest_trade_rebalance ? `最新数据行数：<b>${summary.latest_trade_rebalance.length}</b>` : ''}</div>
       `;
 
       const ctx = document.getElementById('navChart');

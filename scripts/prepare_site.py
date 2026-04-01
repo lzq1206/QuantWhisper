@@ -17,8 +17,12 @@ FILES_TO_COPY = [
     "best_config.json",
     "comparison_metrics.csv",
     "monthly_returns_best.csv",
+    "daily_nav_current.csv",
     "daily_nav_vs_benchmark_near2y_available.csv",
     "holdings_snapshots_best.csv",
+    "trade_ledger.csv",
+    "trade_latest_rebalance.csv",
+    "trade_latest_rebalance.json",
 ]
 
 ASSETS_TO_COPY = [
@@ -69,7 +73,10 @@ def build_summary() -> None:
     best_config = json.loads((SOURCE / "best_config.json").read_text(encoding="utf-8"))
     metrics = load_csv(SOURCE / "comparison_metrics.csv")
     monthly = load_csv(SOURCE / "monthly_returns_best.csv")
-    nav = load_csv(SOURCE / "daily_nav_vs_benchmark_near2y_available.csv")
+    nav_path = SOURCE / "daily_nav_current.csv"
+    if not nav_path.exists():
+        nav_path = SOURCE / "daily_nav_vs_benchmark_near2y_available.csv"
+    nav = load_csv(nav_path)
     holdings = load_csv(SOURCE / "holdings_snapshots_best.csv")
     market_snapshot = None
     market_snapshot_path = SITE_DATA / "market_snapshot.json"
@@ -78,6 +85,15 @@ def build_summary() -> None:
             market_snapshot = json.loads(market_snapshot_path.read_text(encoding="utf-8"))
         except Exception:
             market_snapshot = None
+
+    trade_latest = []
+    trade_latest_path = SOURCE / "trade_latest_rebalance.csv"
+    if trade_latest_path.exists():
+        trade_latest = load_csv(trade_latest_path)
+    trade_history_rows = []
+    trade_history_path = SOURCE / "trade_ledger.csv"
+    if trade_history_path.exists():
+        trade_history_rows = load_csv(trade_history_path)
 
     summary = {
         "generated_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
@@ -88,6 +104,8 @@ def build_summary() -> None:
         "nav_points": len(nav),
         "latest_holdings": compute_latest_holdings(holdings),
         "market_snapshot": market_snapshot,
+        "latest_trade_rebalance": trade_latest[:10],
+        "trade_ledger_rows": len(trade_history_rows),
         "automation": {
             "pages_url": "https://lzq1206.github.io/QuantWhisper/",
             "repo_url": "https://github.com/lzq1206/QuantWhisper",

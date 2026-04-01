@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 SITE_DATA = ROOT / "site" / "data"
 WATCHLIST_FILE = DATA / "holdings_snapshots_best.csv"
+FALLBACK_CSV = DATA / "market_snapshot_fallback.csv"
+FALLBACK_JSON = DATA / "market_snapshot_fallback.json"
 
 
 @dataclass
@@ -223,6 +225,39 @@ def build_index_quote(source: str, rows: list[QuoteRow]) -> dict:
     }
 
 
+def load_repo_fallback() -> tuple[list[QuoteRow], dict] | None:
+    if not (FALLBACK_CSV.exists() and FALLBACK_JSON.exists()):
+        return None
+    try:
+        payload = json.loads(FALLBACK_JSON.read_text(encoding="utf-8"))
+        rows = []
+        with FALLBACK_CSV.open("r", encoding="utf-8", newline="") as f:
+            for r in csv.DictReader(f):
+                rows.append(QuoteRow(
+                    symbol=r.get("symbol", ""),
+                    name=r.get("name", ""),
+                    last=_to_float(r.get("last")),
+                    prev_close=_to_float(r.get("prev_close")),
+                    pct_chg=_to_float(r.get("pct_chg")),
+                    open=_to_float(r.get("open")),
+                    high=_to_float(r.get("high")),
+                    low=_to_float(r.get("low")),
+                    volume=_to_float(r.get("volume")),
+                    amount=_to_float(r.get("amount")),
+                    trade_date=r.get("trade_date"),
+                    source=r.get("source", "csmar_fallback"),
+                ))
+        meta = {
+            "provider": payload.get("provider", "csmar_fallback"),
+            "fetched_at": payload.get("generated_at") or datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
+            "fallback_used": True,
+            "errors": ["AkShare/Baostock unavailable; using committed fallback snapshot."],
+        }
+        return rows, meta
+    except Exception:
+        return None
+
+
 def write_outputs(rows: list[QuoteRow], meta: dict) -> None:
     ensure_dirs()
     csv_path = SITE_DATA / "market_snapshot.csv"
@@ -269,6 +304,8 @@ def main() -> int:
     if not symbols:
         print("No watchlist symbols found; exiting without market snapshot.")
         return 0
+    if "000001" not in symbols:
+        symbols.append("000001")
 
     try:
         rows, meta = fetch_with_akshare(symbols)
@@ -282,6 +319,11 @@ def main() -> int:
             return 0
         except Exception as bs_err:
             print(f"Baostock failed: {bs_err}", file=sys.stderr)
+            fallback = load_repo_fallback()
+            if fallback is not None:
+                rows, meta = fallback
+                write_outputs(rows, meta)
+                return 0
             # Write a minimal status file so the site can show the error.
             ensure_dirs()
             fail = {
