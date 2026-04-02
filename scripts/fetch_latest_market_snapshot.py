@@ -13,8 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 SITE_DATA = ROOT / "site" / "data"
 WATCHLIST_FILE = DATA / "holdings_snapshots_best.csv"
-FALLBACK_CSV = DATA / "market_snapshot_fallback.csv"
-FALLBACK_JSON = DATA / "market_snapshot_fallback.json"
+FALLBACK_CSV = DATA / "market_snapshot_repo_fallback.csv"
+FALLBACK_JSON = DATA / "market_snapshot_repo_fallback.json"
 
 
 @dataclass
@@ -98,8 +98,8 @@ def fetch_with_akshare(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
         code_col = _pick_col(spot_df, "代码", "symbol", "code")
         name_col = _pick_col(spot_df, "名称", "name")
 
-    today = datetime.now().strftime("%Y%m%d")
-    start = (datetime.now() - timedelta(days=45)).strftime("%Y%m%d")
+    today = (datetime.now() - timedelta(days=2)).strftime("%Y%m%d")
+    start = (datetime.now() - timedelta(days=47)).strftime("%Y%m%d")
 
     for sym in symbols:
         row = None
@@ -164,8 +164,8 @@ def fetch_with_baostock(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
         meta["errors"].append(f"login_failed: {getattr(login, 'error_msg', 'unknown')}")
 
     rows: list[QuoteRow] = []
-    start = (datetime.now() - timedelta(days=45)).strftime("%Y%m%d")
-    end = datetime.now().strftime("%Y%m%d")
+    start = (datetime.now() - timedelta(days=47)).strftime("%Y-%m-%d")
+    end = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
 
     for sym in symbols:
         bs_code = f"{_bs_exchange(sym)}.{sym}"
@@ -245,13 +245,13 @@ def load_repo_fallback() -> tuple[list[QuoteRow], dict] | None:
                     volume=_to_float(r.get("volume")),
                     amount=_to_float(r.get("amount")),
                     trade_date=r.get("trade_date"),
-                    source=r.get("source", "csmar_fallback"),
+                    source=r.get("source", "repo_fallback"),
                 ))
         meta = {
-            "provider": payload.get("provider", "csmar_fallback"),
+            "provider": payload.get("provider", "repo_fallback"),
             "fetched_at": payload.get("generated_at") or datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
             "fallback_used": True,
-            "errors": ["AkShare/Baostock unavailable; using committed fallback snapshot."],
+            "errors": ["AkShare/Baostock unavailable; using committed repo fallback snapshot."],
         }
         return rows, meta
     except Exception:
@@ -262,6 +262,8 @@ def write_outputs(rows: list[QuoteRow], meta: dict) -> None:
     ensure_dirs()
     csv_path = SITE_DATA / "market_snapshot.csv"
     json_path = SITE_DATA / "market_snapshot.json"
+    repo_csv_path = FALLBACK_CSV
+    repo_json_path = FALLBACK_JSON
 
     fieldnames = [
         "symbol",
@@ -293,9 +295,13 @@ def write_outputs(rows: list[QuoteRow], meta: dict) -> None:
         "rows": [asdict(r) for r in rows],
     }
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    repo_csv_path.write_text(csv_path.read_text(encoding="utf-8"), encoding="utf-8")
+    repo_json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"Wrote {csv_path}")
     print(f"Wrote {json_path}")
+    print(f"Wrote {repo_csv_path}")
+    print(f"Wrote {repo_json_path}")
     print(json.dumps({"provider": meta["provider"], "count": len(rows), "fallback_used": meta.get("fallback_used", False)}, ensure_ascii=False))
 
 
