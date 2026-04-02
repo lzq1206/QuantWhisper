@@ -1,0 +1,22 @@
+{
+  "files": [
+    "best_config.json",
+    "comparison_metrics.csv",
+    "monthly_returns_best.csv",
+    "daily_nav_current.csv",
+    "daily_nav_vs_benchmark_near2y_available.csv",
+    "holdings_snapshots_best.csv",
+    "trade_ledger.csv",
+    "trade_latest_rebalance.csv",
+    "trade_latest_rebalance.json",
+    "latest_holdings.csv",
+    "summary.json"
+  ],
+  "assets": [
+    "daily_nav_vs_benchmark_near2y_available.png",
+    "daily_nav_compare_exp0003v2_exp0004_same_chart.png",
+    "daily_nav_consistent_with_monthly_EXP0004_2024_2025.png",
+    "daily_nav_vs_benchmark_2024_2025_partial.png"
+  ],
+  "generated_at": "2026-04-02T09:13:28+08:00"
+}
