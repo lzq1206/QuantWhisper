@@ -125,10 +125,10 @@ def fetch_with_akshare(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
             hit = spot_df[spot_df[code_col].astype(str).str.zfill(6) == sym]
             if not hit.empty:
                 r = hit.iloc[0].to_dict()
-                    row = QuoteRow(
-                        symbol=sym,
-                        name=str(r.get(name_col, sym)) if name_col else sym,
-                        last=_to_float(r.get("最新价") or r.get("最新价格")),
+                row = QuoteRow(
+                    symbol=sym,
+                    name=str(r.get(name_col, sym)) if name_col else sym,
+                    last=_to_float(r.get("最新价") or r.get("最新价格")),
                     prev_close=_to_float(r.get("昨收")),
                     pct_chg=_to_float(r.get("涨跌幅")),
                     open=_to_float(r.get("今开")),
