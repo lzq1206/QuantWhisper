@@ -79,6 +79,24 @@ def _to_float(v):
         return None
 
 
+def _to_date_str(v: str | None) -> str | None:
+    if not v:
+        return None
+    s = str(v).strip()
+    if not s:
+        return None
+    if len(s) == 8 and s.isdigit():
+        return f"{s[0:4]}-{s[4:6]}-{s[6:8]}"
+    if len(s) >= 10:
+        return s[:10]
+    return None
+
+
+def _latest_trade_date(rows: list[QuoteRow]) -> str | None:
+    dates = sorted(d for d in (_to_date_str(r.trade_date) for r in rows) if d)
+    return dates[-1] if dates else None
+
+
 def fetch_with_akshare(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
     import akshare as ak  # type: ignore
 
@@ -98,8 +116,8 @@ def fetch_with_akshare(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
         code_col = _pick_col(spot_df, "代码", "symbol", "code")
         name_col = _pick_col(spot_df, "名称", "name")
 
-    today = (datetime.now() - timedelta(days=2)).strftime("%Y%m%d")
-    start = (datetime.now() - timedelta(days=47)).strftime("%Y%m%d")
+    today = datetime.now().strftime("%Y%m%d")
+    start = (datetime.now() - timedelta(days=60)).strftime("%Y%m%d")
 
     for sym in symbols:
         row = None
@@ -107,10 +125,10 @@ def fetch_with_akshare(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
             hit = spot_df[spot_df[code_col].astype(str).str.zfill(6) == sym]
             if not hit.empty:
                 r = hit.iloc[0].to_dict()
-                row = QuoteRow(
-                    symbol=sym,
-                    name=str(r.get(name_col, sym)) if name_col else sym,
-                    last=_to_float(r.get(_pick_col(hit, "最新价"))) if False else _to_float(r.get("最新价") or r.get("最新价格")),
+                    row = QuoteRow(
+                        symbol=sym,
+                        name=str(r.get(name_col, sym)) if name_col else sym,
+                        last=_to_float(r.get("最新价") or r.get("最新价格")),
                     prev_close=_to_float(r.get("昨收")),
                     pct_chg=_to_float(r.get("涨跌幅")),
                     open=_to_float(r.get("今开")),
@@ -164,8 +182,8 @@ def fetch_with_baostock(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
         meta["errors"].append(f"login_failed: {getattr(login, 'error_msg', 'unknown')}")
 
     rows: list[QuoteRow] = []
-    start = (datetime.now() - timedelta(days=47)).strftime("%Y-%m-%d")
-    end = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
+    start = (datetime.now() - timedelta(days=60)).strftime("%Y-%m-%d")
+    end = datetime.now().strftime("%Y-%m-%d")
 
     for sym in symbols:
         bs_code = f"{_bs_exchange(sym)}.{sym}"
@@ -217,7 +235,7 @@ def build_index_quote(source: str, rows: list[QuoteRow]) -> dict:
         return {}
     return {
         "symbol": bench.symbol,
-        "name": "上证指数" if bench.symbol == "000001" else bench.name,
+        "name": bench.name,
         "last": bench.last,
         "pct_chg": bench.pct_chg,
         "trade_date": bench.trade_date,
@@ -285,12 +303,22 @@ def write_outputs(rows: list[QuoteRow], meta: dict) -> None:
         for r in rows:
             writer.writerow(asdict(r))
 
+    latest_trade_date = _latest_trade_date(rows)
+    stale_days = None
+    if latest_trade_date:
+        try:
+            stale_days = (datetime.now().date() - datetime.fromisoformat(latest_trade_date).date()).days
+        except Exception:
+            stale_days = None
+
     payload = {
         "generated_at": meta["fetched_at"],
         "provider": meta["provider"],
         "fallback_used": meta.get("fallback_used", False),
         "errors": meta.get("errors", []),
         "count": len(rows),
+        "latest_trade_date": latest_trade_date,
+        "stale_days": stale_days,
         "benchmark": build_index_quote(meta["provider"], rows),
         "rows": [asdict(r) for r in rows],
     }
@@ -310,8 +338,6 @@ def main() -> int:
     if not symbols:
         print("No watchlist symbols found; exiting without market snapshot.")
         return 0
-    if "000001" not in symbols:
-        symbols.append("000001")
 
     try:
         rows, meta = fetch_with_akshare(symbols)

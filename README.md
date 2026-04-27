@@ -12,6 +12,7 @@ QuantWhisper is a GitHub Pages dashboard for the EXP-0004 virtual portfolio.
 - GitHub Actions deployment to `gh-pages`
 - Optional Telegram topic report
 - Latest行情 snapshot with AkShare primary + repo fallback snapshot
+- Market snapshot metadata now includes latest trade date and stale-day indicator for freshness checks
 
 ## Live site
 - Pages: https://lzq1206.github.io/QuantWhisper/
