@@ -39,6 +39,10 @@
     .small { font-size:12px; color:var(--muted); line-height:1.8; }
     .grid2 { display:grid; grid-template-columns: repeat(2,1fr); gap:14px; }
     .pill { display:inline-block; padding:4px 8px; border-radius:999px; background:rgba(34,197,94,.12); color:#bbf7d0; border:1px solid rgba(34,197,94,.2); font-size:12px; }
+    .status-ok,.status-warn,.status-bad { display:inline-block; padding:3px 8px; border-radius:999px; font-size:12px; border:1px solid transparent; }
+    .status-ok { background:rgba(34,197,94,.12); color:#bbf7d0; border-color:rgba(34,197,94,.24); }
+    .status-warn { background:rgba(250,204,21,.12); color:#fde68a; border-color:rgba(250,204,21,.24); }
+    .status-bad { background:rgba(248,113,113,.12); color:#fecaca; border-color:rgba(248,113,113,.24); }
     .imggrid { display:grid; grid-template-columns: repeat(2,1fr); gap:10px; }
     .imggrid img { width:100%; display:block; border-radius:12px; border:1px solid rgba(148,163,184,.16); }
     .footer { margin-top:16px; color:var(--muted); font-size:12px; line-height:1.8; }
@@ -171,6 +175,29 @@
       const n = Number(v);
       return Number.isFinite(n) ? Number(n).toFixed(d) : '—';
     };
+    const fmtDateTime = v => {
+      if (!v) return '—';
+      const d = new Date(v);
+      return Number.isNaN(d.getTime()) ? v : d.toLocaleString();
+    };
+    const STALE_OK_DAYS = 1;
+    const STALE_WARN_DAYS = 3;
+    const staleMeta = staleDays => {
+      if (!Number.isFinite(staleDays)) return { cls: 'status-bad', text: '未知' };
+      if (staleDays <= STALE_OK_DAYS) return { cls: 'status-ok', text: '数据新鲜（1天内）' };
+      if (staleDays <= STALE_WARN_DAYS) return { cls: 'status-warn', text: `轻微延迟（${staleDays}天）` };
+      return { cls: 'status-bad', text: `明显延迟（${staleDays}天）` };
+    };
+    const marketRow = r => `
+      <tr>
+        <td>${r.symbol || ''}</td>
+        <td>${r.name || ''}</td>
+        <td>${fmtNum(r.last)}</td>
+        <td class="${signClass(r.pct_chg)}">${fmtPct(r.pct_chg)}</td>
+        <td>${r.trade_date || '—'}</td>
+        <td>${r.source || ''}</td>
+      </tr>
+    `;
     const signClass = v => (Number(v) >= 0 ? 'good' : 'bad');
     const parseCSV = text => {
       const lines = text.trim().split(/\r?\n/);
@@ -253,14 +280,17 @@
 
       const marketTop = marketCsv.slice(0, 10);
       document.getElementById('marketTable').innerHTML = marketTop.length ? `
-        <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>来源</th></tr></thead>
-        <tbody>${marketTop.map(r => `<tr><td>${r.symbol || ''}</td><td>${r.name || ''}</td><td>${r.last || '—'}</td><td class="${signClass(r.pct_chg)}">${fmtPct(r.pct_chg)}</td><td>${r.source || ''}</td></tr>`).join('')}</tbody>` : `<tr><td class="small">暂无行情数据</td></tr>`;
+        <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>日期</th><th>来源</th></tr></thead>
+        <tbody>${marketTop.map(marketRow).join('')}</tbody>` : `<tr><td class="small">暂无行情数据</td></tr>`;
 
       const bench = (marketJson && marketJson.benchmark) || {};
       const marketMeta = marketJson || {};
+      const staleDays = Number(marketMeta.stale_days);
+      const staleInfo = staleMeta(staleDays);
       document.getElementById('marketCard').innerHTML = `
         <div>提供方：<b>${marketMeta.provider || '—'}</b></div>
-        <div>抓取时间：<b>${marketMeta.generated_at || '—'}</b></div>
+        <div>抓取时间：<b>${fmtDateTime(marketMeta.generated_at)}</b></div>
+        <div>最新交易日：<b>${marketMeta.latest_trade_date || '—'}</b> <span class="${staleInfo.cls}">${staleInfo.text}</span></div>
         <div>备用切换：<b>${marketMeta.fallback_used ? '是' : '否'}</b></div>
         <div>条数：<b>${marketMeta.count ?? '—'}</b></div>
         <div>基准：<b>${bench.name || bench.symbol || '—'}</b> ${bench.pct_chg !== undefined ? fmtPct(bench.pct_chg) : '—'}</div>
