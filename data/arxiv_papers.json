@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-04-27T02:35:36+00:00",
+  "provider": "seed_fallback",
+  "query": "all:\"quantitative trading\" OR all:\"algorithmic trading\" OR all:\"stock market\" OR all:\"futures market\" OR all:\"portfolio optimization\"",
+  "count": 3,
+  "errors": [
+    "fetch_arxiv_failed: <urlopen error [Errno -5] No address associated with hostname>"
+  ],
+  "papers": [
+    {
+      "paper_id": "1706.10059",
+      "title": "Deep Reinforcement Learning for Trading",
+      "summary": "Apply deep reinforcement learning to portfolio management and algorithmic trading decisions.",
+      "url": "https://arxiv.org/abs/1706.10059",
+      "published_at": "2017-06-30T00:00:00Z",
+      "updated_at": "2017-06-30T00:00:00Z",
+      "authors": [
+        "Zhengyao Jiang",
+        "Dixing Xu",
+        "Jian Zhao"
+      ],
+      "categories": [
+        "q-fin.TR",
+        "cs.LG"
+      ]
+    },
+    {
+      "paper_id": "1909.12227",
+      "title": "Deep Momentum Networks",
+      "summary": "Use deep learning to model momentum effects for liquid futures and improve risk-adjusted returns.",
+      "url": "https://arxiv.org/abs/1909.12227",
+      "published_at": "2019-09-26T00:00:00Z",
+      "updated_at": "2019-09-26T00:00:00Z",
+      "authors": [
+        "Bryan Lim",
+        "Stefan Zohren",
+        "Stephen Roberts"
+      ],
+      "categories": [
+        "q-fin.ST",
+        "q-fin.TR"
+      ]
+    },
+    {
+      "paper_id": "1601.00991",
+      "title": "An Empirical Evaluation of Deep Learning on Stock Return Prediction",
+      "summary": "Evaluate deep neural models for stock return prediction and discuss practical alpha extraction.",
+      "url": "https://arxiv.org/abs/1601.00991",
+      "published_at": "2016-01-05T00:00:00Z",
+      "updated_at": "2016-01-05T00:00:00Z",
+      "authors": [
+        "Jianfeng Gu",
+        "Miao Kelly",
+        "Xiaoyan Xiu"
+      ],
+      "categories": [
+        "q-fin.ST",
+        "stat.ML"
+      ]
+    }
+  ]
+}

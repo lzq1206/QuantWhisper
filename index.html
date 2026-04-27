@@ -45,6 +45,10 @@
     .status-bad { background:rgba(248,113,113,.12); color:#fecaca; border-color:rgba(248,113,113,.24); }
     .imggrid { display:grid; grid-template-columns: repeat(2,1fr); gap:10px; }
     .imggrid img { width:100%; display:block; border-radius:12px; border:1px solid rgba(148,163,184,.16); }
+    .algo-list { width: 100%; min-height: 280px; background: rgba(255,255,255,.03); color: var(--text); border: 1px solid rgba(148,163,184,.2); border-radius: 10px; padding: 8px; }
+    .algo-meta { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin:10px 0; }
+    .algo-box { background: rgba(255,255,255,.03); border:1px solid rgba(148,163,184,.16); border-radius:10px; padding:10px; font-size:12px; }
+    .algo-chartbox { height: 280px; }
     .footer { margin-top:16px; color:var(--muted); font-size:12px; line-height:1.8; }
     code { background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 6px; }
     @media (max-width: 1040px){ .hero,.stats,.two,.grid2,.imggrid { grid-template-columns:1fr; } .title{font-size:28px;} }
@@ -157,6 +161,22 @@
       </div>
     </div>
 
+    <div class="section two">
+      <div class="panel">
+        <h2>arXiv 量化算法列表（最新）</h2>
+        <div class="small" id="algoHubStatus">加载中…</div>
+        <select id="algoSelect" class="algo-list"></select>
+      </div>
+      <div class="panel">
+        <h2>算法详情与回测结果</h2>
+        <div id="algoPaperInfo" class="small">加载中…</div>
+        <div class="algo-meta" id="algoMetrics"></div>
+        <div class="small"><b>下一步操作建议</b></div>
+        <ul id="algoNextSteps" class="small"></ul>
+        <div class="algo-chartbox"><canvas id="algoBacktestChart"></canvas></div>
+      </div>
+    </div>
+
     <div class="footer">
       <div>Pages：<a href="https://lzq1206.github.io/QuantWhisper/">https://lzq1206.github.io/QuantWhisper/</a></div>
       <div>Repo：<a href="https://github.com/lzq1206/QuantWhisper">https://github.com/lzq1206/QuantWhisper</a></div>
@@ -223,6 +243,7 @@
     const loadJson = p => fetch(p).then(r => r.ok ? r.json() : Promise.reject(new Error(p + ' ' + r.status)));
     const safe = p => load(p).catch(() => null);
     const safeJson = p => loadJson(p).catch(() => null);
+    let algoChart = null;
 
     Promise.all([
       fetch('data/summary.json').then(r => r.json()),
@@ -232,8 +253,11 @@
       load('data/latest_holdings.csv').then(parseCSV),
       safeJson('data/market_snapshot.json'),
       safe('data/market_snapshot.csv').then(txt => txt ? parseCSV(txt) : []),
-      safe('data/trade_latest_rebalance.csv').then(txt => txt ? parseCSV(txt) : [])
-    ]).then(([summary, monthly, nav, compare, holdings, marketJson, marketCsv, tradeRows]) => {
+      safe('data/trade_latest_rebalance.csv').then(txt => txt ? parseCSV(txt) : []),
+      safeJson('data/arxiv_papers.json'),
+      safeJson('data/algorithms.json'),
+      safeJson('data/paper_backtests.json')
+    ]).then(([summary, monthly, nav, compare, holdings, marketJson, marketCsv, tradeRows, papersPayload, algosPayload, backtestsPayload]) => {
       document.getElementById('generatedAt').textContent = new Date(summary.generated_at).toLocaleString();
       document.getElementById('strategyName').textContent = summary.strategy.strategy;
       document.getElementById('holdingDate').textContent = summary.latest_holdings.date;
@@ -325,6 +349,74 @@
           }
         }
       });
+
+      const papers = (papersPayload && papersPayload.papers) || [];
+      const algos = (algosPayload && algosPayload.algorithms) || [];
+      const backtests = (backtestsPayload && backtestsPayload.backtests) || [];
+      const algoSelect = document.getElementById('algoSelect');
+      const hubStatus = document.getElementById('algoHubStatus');
+      const metricsBox = document.getElementById('algoMetrics');
+      const paperInfo = document.getElementById('algoPaperInfo');
+      const nextSteps = document.getElementById('algoNextSteps');
+      const backtestByAlgo = Object.fromEntries(backtests.map(b => [b.algorithm_id, b]));
+      const paperById = Object.fromEntries(papers.map(p => [p.paper_id, p]));
+      const fmt = v => Number.isFinite(Number(v)) ? Number(v).toFixed(2) : '—';
+      const fmtP = v => Number.isFinite(Number(v)) ? `${(Number(v) * 100).toFixed(2)}%` : '—';
+
+      if (!algos.length) {
+        hubStatus.textContent = '暂无可用论文算法数据（将由每日 Action 自动刷新）';
+      } else {
+        hubStatus.innerHTML = `论文 ${papers.length} 篇 ｜ 算法 ${algos.length} 个 ｜ 回测 ${backtests.length} 条`;
+        algoSelect.innerHTML = algos.map(a => {
+          const date = a.paper_published_at ? String(a.paper_published_at).slice(0, 10) : '—';
+          return `<option value="${a.algorithm_id}">${a.algorithm_name} ｜ ${date} ｜ ${a.paper_title}</option>`;
+        }).join('');
+
+        const renderAlgo = () => {
+          const id = algoSelect.value;
+          const algo = algos.find(a => a.algorithm_id === id);
+          if (!algo) return;
+          const paper = paperById[algo.paper_id] || {};
+          const bt = backtestByAlgo[id] || {};
+          const m = bt.metrics || {};
+          paperInfo.innerHTML = `
+            <div><b>论文</b>：${paper.title || algo.paper_title || '—'}</div>
+            <div>链接：<a href="${paper.url || algo.paper_url || '#'}" target="_blank" rel="noopener noreferrer">${paper.url || algo.paper_url || '—'}</a></div>
+            <div>日期：${(paper.published_at || algo.paper_published_at || '').slice(0, 10) || '—'}</div>
+            <div>算法：<b>${algo.algorithm_name || '—'}</b>（${algo.family || '—'}）</div>
+            <div>提炼：${algo.thesis || '—'}</div>
+          `;
+          metricsBox.innerHTML = `
+            <div class="algo-box"><div>总收益</div><div><b>${fmtP(m.total_return)}</b></div></div>
+            <div class="algo-box"><div>年化收益</div><div><b>${fmtP(m.annual_return)}</b></div></div>
+            <div class="algo-box"><div>最大回撤</div><div><b>${fmtP(m.max_drawdown)}</b></div></div>
+            <div class="algo-box"><div>夏普</div><div><b>${fmt(m.sharpe)}</b></div></div>
+            <div class="algo-box"><div>胜率</div><div><b>${fmtP(m.win_rate)}</b></div></div>
+            <div class="algo-box"><div>换手</div><div><b>${fmt(m.turnover)}</b></div></div>
+          `;
+          const steps = (algo.next_actions || []);
+          nextSteps.innerHTML = steps.length ? steps.map(s => `<li>${s}</li>`).join('') : '<li>暂无</li>';
+
+          const series = bt.series || [];
+          const labels = series.map(r => r.date);
+          const algoNav = series.map(r => Number(r.strategy_nav));
+          const benchNav = series.map(r => Number(r.benchmark_nav));
+          if (algoChart) algoChart.destroy();
+          algoChart = new Chart(document.getElementById('algoBacktestChart'), {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                { label: '算法回测净值', data: algoNav, borderColor: '#86efac', borderWidth: 2, pointRadius: 0, tension: .2 },
+                { label: '基准净值', data: benchNav, borderColor: '#f9a8d4', borderWidth: 2, pointRadius: 0, tension: .2 }
+              ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: '#9fb0c9', maxTicksLimit: 8 } }, y: { ticks: { color: '#9fb0c9' } } }, plugins: { legend: { labels: { color: '#dbe7fa' } } } }
+          });
+        };
+        algoSelect.addEventListener('change', renderAlgo);
+        renderAlgo();
+      }
     }).catch(err => {
       document.body.insertAdjacentHTML('afterbegin', `<div style="padding:14px;background:#7f1d1d;color:#fff;">加载失败：${err.message}</div>`);
       console.error(err);

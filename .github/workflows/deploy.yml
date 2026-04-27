@@ -37,6 +37,12 @@ jobs:
         run: |
           python scripts/fetch_latest_market_snapshot.py
 
+      - name: Fetch latest arXiv quant papers
+        run: |
+          python scripts/fetch_arxiv_quant_papers.py
+          python scripts/extract_algorithms.py
+          python scripts/run_paper_backtests.py
+
       - name: Build site assets
         run: |
           python scripts/prepare_site.py

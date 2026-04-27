@@ -1,0 +1,110 @@
+{
+  "generated_at": "2026-04-27T02:35:36+00:00",
+  "source_papers_generated_at": "2026-04-27T02:35:36+00:00",
+  "count": 3,
+  "errors": [],
+  "algorithms": [
+    {
+      "algorithm_id": "1706.10059-rl_timing",
+      "paper_id": "1706.10059",
+      "paper_title": "Deep Reinforcement Learning for Trading",
+      "paper_url": "https://arxiv.org/abs/1706.10059",
+      "paper_published_at": "2017-06-30T00:00:00Z",
+      "algorithm_name": "强化学习择时策略",
+      "family": "rl_timing",
+      "thesis": "基于论文《Deep Reinforcement Learning for Trading》提炼的可执行量化框架。",
+      "inputs": [
+        "日频价格序列",
+        "收益率序列",
+        "交易成本参数",
+        "风险约束参数"
+      ],
+      "execution_steps": [
+        "定义 强化学习择时策略 的可交易标的池（股票/期货）与样本区间",
+        "按论文描述构建核心因子或状态变量并标准化",
+        "设置信号阈值与仓位映射（含手续费与滑点）",
+        "在滚动窗口中训练/校准并进行样本外验证",
+        "输出净值、回撤、夏普与换手率并持续监控稳定性"
+      ],
+      "risk_controls": [
+        "单标的权重上限",
+        "组合最大回撤限制",
+        "极端波动降杠杆"
+      ],
+      "next_actions": [
+        "补充数据清洗规则（停牌、涨跌停、缺失值）",
+        "加入交易成本敏感性分析（双边费率/滑点）",
+        "增加风控开关（最大回撤阈值、波动率限仓）",
+        "扩展到多市场对比（沪深股票与股指/商品期货）"
+      ]
+    },
+    {
+      "algorithm_id": "1909.12227-momentum",
+      "paper_id": "1909.12227",
+      "paper_title": "Deep Momentum Networks",
+      "paper_url": "https://arxiv.org/abs/1909.12227",
+      "paper_published_at": "2019-09-26T00:00:00Z",
+      "algorithm_name": "动量趋势策略",
+      "family": "momentum",
+      "thesis": "基于论文《Deep Momentum Networks》提炼的可执行量化框架。",
+      "inputs": [
+        "日频价格序列",
+        "收益率序列",
+        "交易成本参数",
+        "风险约束参数"
+      ],
+      "execution_steps": [
+        "定义 动量趋势策略 的可交易标的池（股票/期货）与样本区间",
+        "按论文描述构建核心因子或状态变量并标准化",
+        "设置信号阈值与仓位映射（含手续费与滑点）",
+        "在滚动窗口中训练/校准并进行样本外验证",
+        "输出净值、回撤、夏普与换手率并持续监控稳定性"
+      ],
+      "risk_controls": [
+        "单标的权重上限",
+        "组合最大回撤限制",
+        "极端波动降杠杆"
+      ],
+      "next_actions": [
+        "补充数据清洗规则（停牌、涨跌停、缺失值）",
+        "加入交易成本敏感性分析（双边费率/滑点）",
+        "增加风控开关（最大回撤阈值、波动率限仓）",
+        "扩展到多市场对比（沪深股票与股指/商品期货）"
+      ]
+    },
+    {
+      "algorithm_id": "1601.00991-multi_factor",
+      "paper_id": "1601.00991",
+      "paper_title": "An Empirical Evaluation of Deep Learning on Stock Return Prediction",
+      "paper_url": "https://arxiv.org/abs/1601.00991",
+      "paper_published_at": "2016-01-05T00:00:00Z",
+      "algorithm_name": "多因子评分策略",
+      "family": "multi_factor",
+      "thesis": "基于论文《An Empirical Evaluation of Deep Learning on Stock Return Prediction》提炼的可执行量化框架。",
+      "inputs": [
+        "日频价格序列",
+        "收益率序列",
+        "交易成本参数",
+        "风险约束参数"
+      ],
+      "execution_steps": [
+        "定义 多因子评分策略 的可交易标的池（股票/期货）与样本区间",
+        "按论文描述构建核心因子或状态变量并标准化",
+        "设置信号阈值与仓位映射（含手续费与滑点）",
+        "在滚动窗口中训练/校准并进行样本外验证",
+        "输出净值、回撤、夏普与换手率并持续监控稳定性"
+      ],
+      "risk_controls": [
+        "单标的权重上限",
+        "组合最大回撤限制",
+        "极端波动降杠杆"
+      ],
+      "next_actions": [
+        "补充数据清洗规则（停牌、涨跌停、缺失值）",
+        "加入交易成本敏感性分析（双边费率/滑点）",
+        "增加风控开关（最大回撤阈值、波动率限仓）",
+        "扩展到多市场对比（沪深股票与股指/商品期货）"
+      ]
+    }
+  ]
+}
