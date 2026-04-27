@@ -15,6 +15,7 @@ SITE_DATA = ROOT / "site" / "data"
 WATCHLIST_FILE = DATA / "holdings_snapshots_best.csv"
 FALLBACK_CSV = DATA / "market_snapshot_repo_fallback.csv"
 FALLBACK_JSON = DATA / "market_snapshot_repo_fallback.json"
+LOOKBACK_DAYS = 60
 
 
 @dataclass
@@ -117,7 +118,7 @@ def fetch_with_akshare(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
         name_col = _pick_col(spot_df, "名称", "name")
 
     today = datetime.now().strftime("%Y%m%d")
-    start = (datetime.now() - timedelta(days=60)).strftime("%Y%m%d")
+    start = (datetime.now() - timedelta(days=LOOKBACK_DAYS)).strftime("%Y%m%d")
 
     for sym in symbols:
         row = None
@@ -182,7 +183,7 @@ def fetch_with_baostock(symbols: list[str]) -> tuple[list[QuoteRow], dict]:
         meta["errors"].append(f"login_failed: {getattr(login, 'error_msg', 'unknown')}")
 
     rows: list[QuoteRow] = []
-    start = (datetime.now() - timedelta(days=60)).strftime("%Y-%m-%d")
+    start = (datetime.now() - timedelta(days=LOOKBACK_DAYS)).strftime("%Y-%m-%d")
     end = datetime.now().strftime("%Y-%m-%d")
 
     for sym in symbols:
@@ -304,10 +305,11 @@ def write_outputs(rows: list[QuoteRow], meta: dict) -> None:
             writer.writerow(asdict(r))
 
     latest_trade_date = _latest_trade_date(rows)
+    today_date = datetime.now().date()
     stale_days = None
     if latest_trade_date:
         try:
-            stale_days = (datetime.now().date() - datetime.fromisoformat(latest_trade_date).date()).days
+            stale_days = (today_date - datetime.fromisoformat(latest_trade_date).date()).days
         except Exception:
             stale_days = None
 

@@ -175,16 +175,29 @@
       const n = Number(v);
       return Number.isFinite(n) ? Number(n).toFixed(d) : '—';
     };
-    const fmtInt = v => {
-      if (v === null || v === undefined || v === '') return '—';
-      const n = Number(v);
-      return Number.isFinite(n) ? n.toLocaleString('zh-CN', { maximumFractionDigits: 0 }) : '—';
-    };
     const fmtDateTime = v => {
       if (!v) return '—';
       const d = new Date(v);
       return Number.isNaN(d.getTime()) ? v : d.toLocaleString();
     };
+    const STALE_OK_DAYS = 1;
+    const STALE_WARN_DAYS = 3;
+    const staleMeta = staleDays => {
+      if (!Number.isFinite(staleDays)) return { cls: 'status-bad', text: '未知' };
+      if (staleDays <= STALE_OK_DAYS) return { cls: 'status-ok', text: '数据新鲜（1天内）' };
+      if (staleDays <= STALE_WARN_DAYS) return { cls: 'status-warn', text: `轻微延迟（${staleDays}天）` };
+      return { cls: 'status-bad', text: `明显延迟（${staleDays}天）` };
+    };
+    const marketRow = r => `
+      <tr>
+        <td>${r.symbol || ''}</td>
+        <td>${r.name || ''}</td>
+        <td>${fmtNum(r.last)}</td>
+        <td class="${signClass(r.pct_chg)}">${fmtPct(r.pct_chg)}</td>
+        <td>${r.trade_date || '—'}</td>
+        <td>${r.source || ''}</td>
+      </tr>
+    `;
     const signClass = v => (Number(v) >= 0 ? 'good' : 'bad');
     const parseCSV = text => {
       const lines = text.trim().split(/\r?\n/);
@@ -268,17 +281,16 @@
       const marketTop = marketCsv.slice(0, 10);
       document.getElementById('marketTable').innerHTML = marketTop.length ? `
         <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>日期</th><th>来源</th></tr></thead>
-        <tbody>${marketTop.map(r => `<tr><td>${r.symbol || ''}</td><td>${r.name || ''}</td><td>${fmtNum(r.last)}</td><td class="${signClass(r.pct_chg)}">${fmtPct(r.pct_chg)}</td><td>${r.trade_date || '—'}</td><td>${r.source || ''}</td></tr>`).join('')}</tbody>` : `<tr><td class="small">暂无行情数据</td></tr>`;
+        <tbody>${marketTop.map(marketRow).join('')}</tbody>` : `<tr><td class="small">暂无行情数据</td></tr>`;
 
       const bench = (marketJson && marketJson.benchmark) || {};
       const marketMeta = marketJson || {};
       const staleDays = Number(marketMeta.stale_days);
-      const staleClass = !Number.isFinite(staleDays) ? 'status-bad' : staleDays <= 1 ? 'status-ok' : staleDays <= 3 ? 'status-warn' : 'status-bad';
-      const staleText = !Number.isFinite(staleDays) ? '未知' : staleDays <= 1 ? '新鲜（T+1内）' : staleDays <= 3 ? `轻微滞后（T+${staleDays}）` : `已滞后（T+${staleDays}）`;
+      const staleInfo = staleMeta(staleDays);
       document.getElementById('marketCard').innerHTML = `
         <div>提供方：<b>${marketMeta.provider || '—'}</b></div>
         <div>抓取时间：<b>${fmtDateTime(marketMeta.generated_at)}</b></div>
-        <div>最新交易日：<b>${marketMeta.latest_trade_date || '—'}</b> <span class="${staleClass}">${staleText}</span></div>
+        <div>最新交易日：<b>${marketMeta.latest_trade_date || '—'}</b> <span class="${staleInfo.cls}">${staleInfo.text}</span></div>
         <div>备用切换：<b>${marketMeta.fallback_used ? '是' : '否'}</b></div>
         <div>条数：<b>${marketMeta.count ?? '—'}</b></div>
         <div>基准：<b>${bench.name || bench.symbol || '—'}</b> ${bench.pct_chg !== undefined ? fmtPct(bench.pct_chg) : '—'}</div>
