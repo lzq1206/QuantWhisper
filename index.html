@@ -45,10 +45,17 @@
     .status-bad { background:rgba(248,113,113,.12); color:#fecaca; border-color:rgba(248,113,113,.24); }
     .imggrid { display:grid; grid-template-columns: repeat(2,1fr); gap:10px; }
     .imggrid img { width:100%; display:block; border-radius:12px; border:1px solid rgba(148,163,184,.16); }
-    .algo-list { width: 100%; min-height: 280px; background: rgba(255,255,255,.03); color: var(--text); border: 1px solid rgba(148,163,184,.2); border-radius: 10px; padding: 8px; }
+    .algo-card-list { width: 100%; max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 2px; }
+    .algo-card { padding: 10px 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(148,163,184,.18); border-radius: 10px; cursor: pointer; transition: border-color .15s, background .15s; }
+    .algo-card:hover { background: rgba(125,211,252,.07); border-color: rgba(125,211,252,.35); }
+    .algo-card.active { background: rgba(125,211,252,.12); border-color: rgba(125,211,252,.55); }
+    .algo-card-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .algo-card-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
     .algo-meta { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin:10px 0; }
     .algo-box { background: rgba(255,255,255,.03); border:1px solid rgba(148,163,184,.16); border-radius:10px; padding:10px; font-size:12px; }
-    .algo-chartbox { height: 280px; }
+    .algo-steps { padding-left: 16px; margin: 4px 0 0; }
+    .algo-steps li { font-size: 12px; color: var(--muted); line-height: 1.7; }
+    .algo-chartbox { height: 260px; }
     .footer { margin-top:16px; color:var(--muted); font-size:12px; line-height:1.8; }
     code { background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 6px; }
     @media (max-width: 1040px){ .hero,.stats,.two,.grid2,.imggrid { grid-template-columns:1fr; } .title{font-size:28px;} }
@@ -165,15 +172,17 @@
       <div class="panel">
         <h2>arXiv 量化算法列表（最新）</h2>
         <div class="small" id="algoHubStatus">加载中…</div>
-        <select id="algoSelect" class="algo-list"></select>
+        <div class="algo-card-list" id="algoCardList"></div>
       </div>
       <div class="panel">
         <h2>算法详情与回测结果</h2>
         <div id="algoPaperInfo" class="small">加载中…</div>
         <div class="algo-meta" id="algoMetrics"></div>
-        <div class="small"><b>下一步操作建议</b></div>
-        <ul id="algoNextSteps" class="small"></ul>
-        <div class="algo-chartbox"><canvas id="algoBacktestChart"></canvas></div>
+        <div class="small" style="margin-top:6px;"><b>执行步骤</b></div>
+        <ol id="algoExecSteps" class="algo-steps"></ol>
+        <div class="small" style="margin-top:6px;"><b>下一步操作建议</b></div>
+        <ul id="algoNextSteps" class="algo-steps"></ul>
+        <div class="algo-chartbox" style="margin-top:10px;"><canvas id="algoBacktestChart"></canvas></div>
       </div>
     </div>
 
@@ -353,10 +362,11 @@
       const papers = (papersPayload && papersPayload.papers) || [];
       const algos = (algosPayload && algosPayload.algorithms) || [];
       const backtests = (backtestsPayload && backtestsPayload.backtests) || [];
-      const algoSelect = document.getElementById('algoSelect');
+      const cardList = document.getElementById('algoCardList');
       const hubStatus = document.getElementById('algoHubStatus');
       const metricsBox = document.getElementById('algoMetrics');
       const paperInfo = document.getElementById('algoPaperInfo');
+      const execSteps = document.getElementById('algoExecSteps');
       const nextSteps = document.getElementById('algoNextSteps');
       const backtestByAlgo = Object.fromEntries(backtests.map(b => [b.algorithm_id, b]));
       const paperById = Object.fromEntries(papers.map(p => [p.paper_id, p]));
@@ -365,15 +375,15 @@
 
       if (!algos.length) {
         hubStatus.textContent = '暂无可用论文算法数据（将由每日 Action 自动刷新）';
+        cardList.innerHTML = '<div class="small" style="padding:10px;">—</div>';
       } else {
         hubStatus.innerHTML = `论文 ${papers.length} 篇 ｜ 算法 ${algos.length} 个 ｜ 回测 ${backtests.length} 条`;
-        algoSelect.innerHTML = algos.map(a => {
-          const date = a.paper_published_at ? String(a.paper_published_at).slice(0, 10) : '—';
-          return `<option value="${a.algorithm_id}">${a.algorithm_name} ｜ ${date} ｜ ${a.paper_title}</option>`;
-        }).join('');
 
-        const renderAlgo = () => {
-          const id = algoSelect.value;
+        let activeId = algos[0].algorithm_id;
+
+        const renderAlgo = (id) => {
+          activeId = id;
+          document.querySelectorAll('.algo-card').forEach(c => c.classList.toggle('active', c.dataset.id === id));
           const algo = algos.find(a => a.algorithm_id === id);
           if (!algo) return;
           const paper = paperById[algo.paper_id] || {};
@@ -383,7 +393,7 @@
             <div><b>论文</b>：${paper.title || algo.paper_title || '—'}</div>
             <div>链接：<a href="${paper.url || algo.paper_url || '#'}" target="_blank" rel="noopener noreferrer">${paper.url || algo.paper_url || '—'}</a></div>
             <div>日期：${(paper.published_at || algo.paper_published_at || '').slice(0, 10) || '—'}</div>
-            <div>算法：<b>${algo.algorithm_name || '—'}</b>（${algo.family || '—'}）</div>
+            <div>算法族：<b>${algo.algorithm_name || '—'}</b>（${algo.family || '—'}）</div>
             <div>提炼：${algo.thesis || '—'}</div>
           `;
           metricsBox.innerHTML = `
@@ -394,8 +404,10 @@
             <div class="algo-box"><div>胜率</div><div><b>${fmtP(m.win_rate)}</b></div></div>
             <div class="algo-box"><div>换手</div><div><b>${fmt(m.turnover)}</b></div></div>
           `;
-          const steps = (algo.next_actions || []);
-          nextSteps.innerHTML = steps.length ? steps.map(s => `<li>${s}</li>`).join('') : '<li>暂无</li>';
+          const eSteps = (algo.execution_steps || []);
+          execSteps.innerHTML = eSteps.length ? eSteps.map(s => `<li>${s}</li>`).join('') : '<li>暂无</li>';
+          const nSteps = (algo.next_actions || []);
+          nextSteps.innerHTML = nSteps.length ? nSteps.map(s => `<li>${s}</li>`).join('') : '<li>暂无</li>';
 
           const series = bt.series || [];
           const labels = series.map(r => r.date);
@@ -414,8 +426,24 @@
             options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: '#9fb0c9', maxTicksLimit: 8 } }, y: { ticks: { color: '#9fb0c9' } } }, plugins: { legend: { labels: { color: '#dbe7fa' } } } }
           });
         };
-        algoSelect.addEventListener('change', renderAlgo);
-        renderAlgo();
+
+        cardList.innerHTML = algos.map(a => {
+          const date = a.paper_published_at ? String(a.paper_published_at).slice(0, 10) : '—';
+          const bt = backtestByAlgo[a.algorithm_id] || {};
+          const m = bt.metrics || {};
+          const sr = Number.isFinite(Number(m.sharpe)) ? Number(m.sharpe).toFixed(2) : '—';
+          const ar = Number.isFinite(Number(m.annual_return)) ? `${(Number(m.annual_return)*100).toFixed(1)}%` : '—';
+          return `<div class="algo-card${a.algorithm_id === activeId ? ' active' : ''}" data-id="${a.algorithm_id}">
+            <div class="algo-card-title">${a.algorithm_name}</div>
+            <div class="algo-card-sub">${date} ｜ Sharpe ${sr} ｜ 年化 ${ar}</div>
+            <div class="algo-card-sub" style="opacity:.75;margin-top:2px;">${a.paper_title}</div>
+          </div>`;
+        }).join('');
+
+        cardList.querySelectorAll('.algo-card').forEach(card => {
+          card.addEventListener('click', () => renderAlgo(card.dataset.id));
+        });
+        renderAlgo(activeId);
       }
     }).catch(err => {
       document.body.insertAdjacentHTML('afterbegin', `<div style="padding:14px;background:#7f1d1d;color:#fff;">加载失败：${err.message}</div>`);

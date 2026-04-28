@@ -1,17 +1,16 @@
 {
-  "generated_at": "2026-04-28T02:17:09+00:00",
+  "generated_at": "2026-04-28T02:20:25+00:00",
   "provider": "seed_fallback",
   "query": "all:\"quantitative trading\" OR all:\"algorithmic trading\" OR all:\"stock market\" OR all:\"futures market\" OR all:\"portfolio optimization\"",
-  "count": 3,
+  "count": 8,
   "errors": [
-    "fetch_arxiv_failed: <urlopen error [Errno -5] No address associated with hostname>",
     "fetch_arxiv_failed: <urlopen error [Errno -5] No address associated with hostname>"
   ],
   "papers": [
     {
       "paper_id": "1706.10059",
       "title": "Deep Reinforcement Learning for Trading",
-      "summary": "Apply deep reinforcement learning to portfolio management and algorithmic trading decisions.",
+      "summary": "Apply deep reinforcement learning to portfolio management and algorithmic trading decisions with continuous action spaces.",
       "url": "https://arxiv.org/abs/1706.10059",
       "published_at": "2017-06-30T00:00:00Z",
       "updated_at": "2017-06-30T00:00:00Z",
@@ -28,7 +27,7 @@
     {
       "paper_id": "1909.12227",
       "title": "Deep Momentum Networks",
-      "summary": "Use deep learning to model momentum effects for liquid futures and improve risk-adjusted returns.",
+      "summary": "Use deep learning to model momentum effects and trend signals for liquid futures to improve risk-adjusted returns.",
       "url": "https://arxiv.org/abs/1909.12227",
       "published_at": "2019-09-26T00:00:00Z",
       "updated_at": "2019-09-26T00:00:00Z",
@@ -45,7 +44,7 @@
     {
       "paper_id": "1601.00991",
       "title": "An Empirical Evaluation of Deep Learning on Stock Return Prediction",
-      "summary": "Evaluate deep neural models for stock return prediction and discuss practical alpha extraction.",
+      "summary": "Evaluate deep neural models as multi-factor scoring for stock return prediction and discuss practical alpha extraction from price and volume data.",
       "url": "https://arxiv.org/abs/1601.00991",
       "published_at": "2016-01-05T00:00:00Z",
       "updated_at": "2016-01-05T00:00:00Z",
@@ -57,6 +56,93 @@
       "categories": [
         "q-fin.ST",
         "stat.ML"
+      ]
+    },
+    {
+      "paper_id": "2009.10257",
+      "title": "Attention-based Transformer Models for Stock Return Prediction",
+      "summary": "Transformer attention mechanisms applied to sequential equity factor data for cross-sectional stock return prediction and portfolio construction.",
+      "url": "https://arxiv.org/abs/2009.10257",
+      "published_at": "2020-09-21T00:00:00Z",
+      "updated_at": "2020-09-21T00:00:00Z",
+      "authors": [
+        "Daiki Matsunaga",
+        "Tome Suzuki",
+        "Tatsuro Ito"
+      ],
+      "categories": [
+        "q-fin.ST",
+        "cs.LG"
+      ]
+    },
+    {
+      "paper_id": "2104.02671",
+      "title": "Mean Reversion and Pairs Trading with Cointegration in Chinese A-Share Stock Market",
+      "summary": "Cointegration-based mean reversion pairs trading strategy for the Chinese A-share stock market with reversion timing signals.",
+      "url": "https://arxiv.org/abs/2104.02671",
+      "published_at": "2021-04-06T00:00:00Z",
+      "updated_at": "2021-04-06T00:00:00Z",
+      "authors": [
+        "Yixiao Jiang",
+        "Peter A. Forsyth"
+      ],
+      "categories": [
+        "q-fin.TR",
+        "q-fin.ST"
+      ]
+    },
+    {
+      "paper_id": "1911.10107",
+      "title": "Adaptive Volatility Targeting and Risk Parity in Futures Markets",
+      "summary": "Volatility-scaled position sizing and GARCH-based breakout signals for diversified futures portfolio with dynamic risk parity allocation.",
+      "url": "https://arxiv.org/abs/1911.10107",
+      "published_at": "2019-11-22T00:00:00Z",
+      "updated_at": "2019-11-22T00:00:00Z",
+      "authors": [
+        "Thomas Barrau",
+        "Raphael Douady"
+      ],
+      "categories": [
+        "q-fin.PM",
+        "q-fin.TR"
+      ]
+    },
+    {
+      "paper_id": "2106.00770",
+      "title": "Equity Factor Investing: A Multi-Factor Alpha Generation Framework",
+      "summary": "Systematic multi-factor equity portfolio construction combining value, momentum, quality and low-volatility factors with robust optimization and turnover constraints.",
+      "url": "https://arxiv.org/abs/2106.00770",
+      "published_at": "2021-06-01T00:00:00Z",
+      "updated_at": "2021-06-01T00:00:00Z",
+      "authors": [
+        "Andrew Ang",
+        "Robert Hodrick",
+        "Yuhang Xing",
+        "Xiaoyan Zhang"
+      ],
+      "categories": [
+        "q-fin.PM",
+        "q-fin.ST"
+      ]
+    },
+    {
+      "paper_id": "2210.01026",
+      "title": "FinRL: A Deep Reinforcement Learning Library for Automated Stock Trading",
+      "summary": "Open-source deep reinforcement learning framework for automated quantitative stock trading with backtesting, live trading support, and comprehensive benchmark environments.",
+      "url": "https://arxiv.org/abs/2210.01026",
+      "published_at": "2022-10-03T00:00:00Z",
+      "updated_at": "2022-10-03T00:00:00Z",
+      "authors": [
+        "Xiao-Yang Liu",
+        "Hongyang Yang",
+        "Qian Chen",
+        "Rui Yang",
+        "Liuqing Yang"
+      ],
+      "categories": [
+        "q-fin.TR",
+        "cs.LG",
+        "cs.AI"
       ]
     }
   ]
