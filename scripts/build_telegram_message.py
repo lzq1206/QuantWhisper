@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SUMMARY = ROOT / "site" / "data" / "summary.json"
 MARKET = ROOT / "site" / "data" / "market_snapshot.json"
 TRADE = ROOT / "site" / "data" / "trade_latest_rebalance.csv"
+ALGOS = ROOT / "site" / "data" / "algorithms.json"
 
 
 def pct(v):
@@ -43,6 +44,13 @@ def main() -> None:
         except Exception:
             trade_rows = []
 
+    algo_hub = {}
+    if ALGOS.exists():
+        try:
+            algo_hub = json.loads(ALGOS.read_text(encoding="utf-8"))
+        except Exception:
+            algo_hub = {}
+
     lines = [
         "QuantWhisper 日更虚拟盘已更新",
         f"策略：{s['strategy']}",
@@ -70,6 +78,14 @@ def main() -> None:
             lines.append(
                 f"- {row.get('action')} {row.get('stkcd')} | Δw={float(row.get('weight_change', 0)) * 100:.3f}% | 价={row.get('close_price', '—')} | 量={row.get('trade_volume', '—')}"
             )
+    if algo_hub.get("algorithms"):
+        algos = algo_hub["algorithms"]
+        lines += [
+            "",
+            f"📚 算法研究库 （{len(algos)} 个策略）：",
+        ]
+        for a in algos[:3]:
+            lines.append(f"- {a.get('algorithm_name','—')}：{a.get('paper_title','—')[:40]}")
     lines += ["", "Top 持仓："]
     for h in holdings:
         lines.append(f"- {h['stkcd']}: {float(h['weight']) * 100:.3f}%")

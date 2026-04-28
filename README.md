@@ -13,6 +13,8 @@ QuantWhisper is a GitHub Pages dashboard for the EXP-0004 virtual portfolio.
 - Optional Telegram topic report
 - Latest行情 snapshot with AkShare primary + repo fallback snapshot
 - Market snapshot metadata now includes latest trade date and stale-day indicator for freshness checks
+- Daily arXiv quant-paper fetch + algorithm extraction + auto backtest snapshot
+- Bottom-page algorithm hub with selectable strategies, paper link/date, backtest metrics and next-step actions
 
 ## Live site
 - Pages: https://lzq1206.github.io/QuantWhisper/
@@ -22,8 +24,9 @@ QuantWhisper is a GitHub Pages dashboard for the EXP-0004 virtual portfolio.
 The workflow in `.github/workflows/deploy.yml` does four things:
 1. Optionally syncs a source snapshot if `QUANTWHISPER_SOURCE_DIR` is configured as a secret.
 2. Fetches the latest market snapshot using AkShare first, then falls back to a committed repo snapshot.
-3. Rebuilds the static dashboard into `site/`.
-4. Deploys the result to the `gh-pages` branch and, if Telegram secrets are present, posts a daily summary.
+3. Fetches latest arXiv quantitative papers, extracts algorithm cards, and generates auto backtest results.
+4. Rebuilds the static dashboard into `site/`.
+5. Deploys the result to the `gh-pages` branch and, if Telegram secrets are present, posts a daily summary.
 
 ## Telegram configuration
 Set these GitHub repository secrets if you want auto-posting into Telegram:
@@ -42,6 +45,9 @@ If you later want the workflow to refresh from a different source, set:
 ## Local build
 ```bash
 python scripts/sync_source_snapshot.py
+python scripts/fetch_arxiv_quant_papers.py
+python scripts/extract_algorithms.py
+python scripts/run_paper_backtests.py
 python scripts/prepare_site.py
 cp index.html site/index.html
 ```

@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REPO_REPORTS = ROOT.parent / "project" / "reports" / "EXP-0004"
 SOURCE = ROOT / "data"
+SOURCE_ASSETS = ROOT / "assets"
 SITE = ROOT / "site"
 SITE_DATA = SITE / "data"
 SITE_ASSETS = SITE / "assets"
@@ -23,6 +24,9 @@ FILES_TO_COPY = [
     "trade_ledger.csv",
     "trade_latest_rebalance.csv",
     "trade_latest_rebalance.json",
+    "arxiv_papers.json",
+    "algorithms.json",
+    "paper_backtests.json",
 ]
 
 ASSETS_TO_COPY = [
@@ -41,9 +45,15 @@ def copy_files() -> None:
     ensure_dir(SITE_DATA)
     ensure_dir(SITE_ASSETS)
     for name in FILES_TO_COPY:
-        shutil.copy2(SOURCE / name, SITE_DATA / name)
+        src = SOURCE / name
+        if src.exists():
+            shutil.copy2(src, SITE_DATA / name)
     for name in ASSETS_TO_COPY:
-        shutil.copy2(REPO_REPORTS / name, SITE_ASSETS / name)
+        src = REPO_REPORTS / name
+        if not src.exists():
+            src = SOURCE_ASSETS / name
+        if src.exists():
+            shutil.copy2(src, SITE_ASSETS / name)
 
 
 def load_csv(path: Path) -> list[dict[str, str]]:
@@ -94,6 +104,15 @@ def build_summary() -> None:
     trade_history_path = SOURCE / "trade_ledger.csv"
     if trade_history_path.exists():
         trade_history_rows = load_csv(trade_history_path)
+    paper_payload = {}
+    if (SOURCE / "arxiv_papers.json").exists():
+        paper_payload = json.loads((SOURCE / "arxiv_papers.json").read_text(encoding="utf-8"))
+    algo_payload = {}
+    if (SOURCE / "algorithms.json").exists():
+        algo_payload = json.loads((SOURCE / "algorithms.json").read_text(encoding="utf-8"))
+    backtest_payload = {}
+    if (SOURCE / "paper_backtests.json").exists():
+        backtest_payload = json.loads((SOURCE / "paper_backtests.json").read_text(encoding="utf-8"))
 
     summary = {
         "generated_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
@@ -110,6 +129,14 @@ def build_summary() -> None:
             "pages_url": "https://lzq1206.github.io/QuantWhisper/",
             "repo_url": "https://github.com/lzq1206/QuantWhisper",
             "mode": "static snapshot + scheduled rebuild hook",
+        },
+        "algorithm_hub": {
+            "papers_count": paper_payload.get("count", 0),
+            "algorithms_count": algo_payload.get("count", 0),
+            "backtests_count": backtest_payload.get("count", 0),
+            "papers_generated_at": paper_payload.get("generated_at"),
+            "algorithms_generated_at": algo_payload.get("generated_at"),
+            "backtests_generated_at": backtest_payload.get("generated_at"),
         },
         "notes": [
             "GitHub Pages dashboard for the EXP-0004 virtual portfolio.",
