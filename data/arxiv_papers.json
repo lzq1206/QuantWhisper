@@ -1,9 +1,10 @@
 {
-  "generated_at": "2026-04-28T02:20:25+00:00",
+  "generated_at": "2026-04-28T02:28:54+00:00",
   "provider": "seed_fallback",
   "query": "all:\"quantitative trading\" OR all:\"algorithmic trading\" OR all:\"stock market\" OR all:\"futures market\" OR all:\"portfolio optimization\"",
   "count": 8,
   "errors": [
+    "fetch_arxiv_failed: <urlopen error [Errno -5] No address associated with hostname>",
     "fetch_arxiv_failed: <urlopen error [Errno -5] No address associated with hostname>"
   ],
   "papers": [
