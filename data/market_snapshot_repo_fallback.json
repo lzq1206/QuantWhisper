@@ -7,7 +7,7 @@
   ],
   "count": 18,
   "latest_trade_date": "2026-03-31",
-  "stale_days": 28,
+  "stale_days": 29,
   "benchmark": {
     "symbol": "000001",
     "name": "000001",
