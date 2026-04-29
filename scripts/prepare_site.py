@@ -145,7 +145,10 @@ def build_summary() -> None:
             "Latest行情会优先从 AkShare 抓取，失败时自动降级到 Baostock。",
         ],
     }
-    (SITE_DATA / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    summary_json = json.dumps(summary, ensure_ascii=False, indent=2)
+    (SITE_DATA / "summary.json").write_text(summary_json, encoding="utf-8")
+    # Also write to data/ so GitHub Pages can serve it directly from main branch.
+    (SOURCE / "summary.json").write_text(summary_json, encoding="utf-8")
 
     # Convenience compact table of the latest 20 holdings.
     latest = summary["latest_holdings"]
@@ -153,10 +156,18 @@ def build_summary() -> None:
         {"stkcd": h["stkcd"], "weight": h["weight"]}
         for h in latest["holdings"]
     ]
+    holdings_csv_lines: list[str] = []
+    import io
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=["stkcd", "weight"])
+    w.writeheader()
+    w.writerows(holdings_rows)
+    holdings_csv_text = buf.getvalue()
     with (SITE_DATA / "latest_holdings.csv").open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["stkcd", "weight"])
-        w.writeheader()
-        w.writerows(holdings_rows)
+        f.write(holdings_csv_text)
+    # Also write to data/ for direct serving.
+    with (SOURCE / "latest_holdings.csv").open("w", encoding="utf-8", newline="") as f:
+        f.write(holdings_csv_text)
 
     # Build a small changelog-style manifest.
     manifest = {

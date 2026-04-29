@@ -373,7 +373,7 @@ def main() -> int:
             with (SITE_DATA / "market_snapshot.csv").open("w", encoding="utf-8", newline="") as f:
                 writer = csv.DictWriter(f, fieldnames=["symbol", "name", "last", "prev_close", "pct_chg", "open", "high", "low", "volume", "amount", "trade_date", "source"])
                 writer.writeheader()
-            return 1
+            return 0
 
 
 if __name__ == "__main__":
